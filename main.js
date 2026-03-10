@@ -1,0 +1,140 @@
+// ── Main Loop ─────────────────────────────────────────────────────────────────
+const clock = new THREE.Clock();
+
+function animate() {
+  requestAnimationFrame(animate);
+  const dt = clock.getDelta();
+  if (!modelLoaded) { renderer.render(scene, camera); return; }
+
+  // Car driving
+  if (inCar) {
+    if (keys['KeyW']||keys['ArrowUp'])   carSpeed = Math.min(carSpeed + 200*dt, 400);
+    if (keys['KeyS']||keys['ArrowDown']) carSpeed = Math.max(carSpeed - 100*dt, -50);
+    carSpeed *= Math.pow(0.88, dt * 60);
+    if (Math.abs(carSpeed) > 0.08) {
+      const steer = (keys['KeyA']||keys['ArrowLeft'] ? 1 : keys['KeyD']||keys['ArrowRight'] ? -1 : 0)
+                    * dt * 2.0 * Math.sign(carSpeed);
+      car.rotation.y += steer;
+      car.position.x += Math.sin(car.rotation.y) * carSpeed * dt;
+      car.position.z += Math.cos(car.rotation.y) * carSpeed * dt;
+      car.position.x = Math.max(-145, Math.min(145, car.position.x));
+      car.position.z = Math.max(-145, Math.min(145, car.position.z));
+    }
+    car.userData.wheels.forEach(w => { w.rotation.x += carSpeed * dt * 1.6; });
+  }
+
+  // Player movement
+  let mx=0, mz=0, isMoving=false;
+  if (!inCar) {
+    if (keys['KeyW']||keys['ArrowUp'])    mz -= 1;
+    if (keys['KeyS']||keys['ArrowDown'])  mz += 1;
+    if (keys['KeyA']||keys['ArrowLeft'])  mx -= 1;
+    if (keys['KeyD']||keys['ArrowRight']) mx += 1;
+
+    const groundY = player.userData.groundOffset || 0;
+    const isOnGround = player.position.y <= groundY + 0.05;
+    if (keys['Space'] && isOnGround) velY = 7.5;
+    velY += GRAVITY * dt;
+    player.position.y = Math.max(groundY, player.position.y + velY * dt);
+    if (player.position.y <= groundY) velY = 0;
+
+    const isSprinting = keys['ShiftLeft'] || keys['ShiftRight'];
+    isMoving = mx!==0 || mz!==0;
+    if (isMoving) {
+      const speed = (isSprinting ? 8.0 : 4.0) * dt;
+      const angle = Math.atan2(mx, mz) + camYaw;
+      const nx = player.position.x + Math.sin(angle)*speed;
+      const nz = player.position.z + Math.cos(angle)*speed;
+      let blocked = false;
+      for (const c of colliders) {
+        const dx=nx-c.x, dz=nz-c.z;
+        if (Math.sqrt(dx*dx+dz*dz) < c.radius+0.5) { blocked=true; break; }
+      }
+      if (Math.abs(nx)>145||Math.abs(nz)>145) blocked=true;
+      if (!blocked) { player.position.x=nx; player.position.z=nz; }
+      player.rotation.y = angle;
+    }
+    if (mixer) {
+      if (isMoving && actionWalk) {
+        actionWalk.timeScale = (keys['ShiftLeft']||keys['ShiftRight']) ? 2.0 : 1.0;
+        actionWalk.paused = false; switchAction(actionWalk);
+      } else if (!isMoving && currentAction) { currentAction.paused = true; }
+      mixer.update(dt);
+    }
+  }
+
+  // Bone collection
+  boneMeshes.forEach(bone => {
+    if (bone.userData.collected) return;
+    bone.rotation.y += dt * 2.5;
+    bone.position.y = 0.35 + Math.sin(clock.getElapsedTime()*3 + bone.position.x)*0.06;
+    const dx=player.position.x-bone.position.x, dz=player.position.z-bone.position.z;
+    if (Math.sqrt(dx*dx+dz*dz) < 0.9) {
+      bone.userData.collected = true;
+      scene.remove(bone);
+      score++;
+      const scoreEl = document.getElementById('score');
+      scoreEl.textContent = score >= 10 ? '🦴 All bones found! 🎉' : `🦴 Bones: ${score} / 10`;
+      scoreEl.classList.add('pop');
+      setTimeout(() => scoreEl.classList.remove('pop'), 150);
+    }
+  });
+
+  // Camera
+  const camTarget = inCar ? car : player;
+  const camDist = inCar ? 14 : 9;
+  const camHeight = inCar ? 1.5 : 1.0;
+  const camOffX = Math.sin(camYaw) * Math.cos(camPitch) * camDist;
+  const camOffY = Math.sin(camPitch) * camDist;
+  const camOffZ = Math.cos(camYaw) * Math.cos(camPitch) * camDist;
+  const targetCamX = camTarget.position.x + camOffX;
+  const targetCamZ = camTarget.position.z + camOffZ;
+  const targetCamY = camTarget.position.y + camOffY + camHeight;
+  camera.position.x = targetCamX;
+  camera.position.z = targetCamZ;
+  camera.position.y += (targetCamY - camera.position.y) * Math.min(1, 12 * dt);
+  camera.lookAt(camTarget.position.x, camTarget.position.y + camHeight, camTarget.position.z);
+
+  // Car enter hint
+  const cdx2 = (inCar ? 999 : player.position.x - car.position.x);
+  const cdz2 = (inCar ? 999 : player.position.z - car.position.z);
+  const nearCar = Math.sqrt(cdx2*cdx2+cdz2*cdz2) < 5;
+  carHintEl.style.display = nearCar ? 'block' : 'none';
+  if (nearCar) {
+    const cp = car.position.clone(); cp.y += 2.2;
+    const cs = toScreen(cp);
+    if (!cs.behind) { carHintEl.style.left=cs.x+'px'; carHintEl.style.top=cs.y+'px'; }
+  }
+
+  // Clouds drift
+  clouds.forEach((c,i) => { c.position.x += 0.005*(i%2===0?1:-1); });
+
+  // NPC idle bobbing & bubbles
+  const t = clock.getElapsedTime();
+  for (const [i, npc] of npcs.entries()) {
+    npc.mesh.position.y = Math.sin(t * 1.4 + i * 1.3) * 0.05;
+    npc.mesh.rotation.y = npc.mesh.userData.baseRot + Math.sin(t * 0.7 + i * 0.9) * 0.06;
+
+    const dx=player.position.x-npc.mesh.position.x, dz=player.position.z-npc.mesh.position.z;
+    const inRange = Math.sqrt(dx*dx+dz*dz) < 3.5;
+    if (!inRange) npc.talkVisible = false;
+    npc.hintEl.style.display   = inRange && !npc.talkVisible ? 'block' : 'none';
+    npc.bubbleEl.style.display = npc.talkVisible ? 'block' : 'none';
+    npc.hintEl.textContent = inRange && !npc.talkVisible ? '[E] Talk' : '';
+    const hp = npc.mesh.position.clone(); hp.y += 2.4;
+    const sc = toScreen(hp);
+    if (!sc.behind) {
+      npc.bubbleEl.style.left=sc.x+'px'; npc.bubbleEl.style.top=sc.y+'px';
+      npc.hintEl.style.left=sc.x+'px';   npc.hintEl.style.top=(sc.y+18)+'px';
+    } else {
+      npc.bubbleEl.style.display='none'; npc.hintEl.style.display='none';
+    }
+  }
+
+  skyMesh.position.set(camera.position.x, 30, camera.position.z);
+  renderer.render(scene, camera);
+}
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
+loadSnoopy();
+animate();
