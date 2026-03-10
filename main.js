@@ -109,15 +109,53 @@ function animate() {
   // Clouds drift
   clouds.forEach((c,i) => { c.position.x += 0.005*(i%2===0?1:-1); });
 
-  // NPC idle bobbing & bubbles
+  // NPC wander & bubbles
   const t = clock.getElapsedTime();
+  const NPC_SPEED = 1.4;
+  const WANDER_RADIUS = 9;
   for (const [i, npc] of npcs.entries()) {
-    npc.mesh.position.y = Math.sin(t * 1.4 + i * 1.3) * 0.05;
-    npc.mesh.rotation.y = npc.mesh.userData.baseRot + Math.sin(t * 0.7 + i * 0.9) * 0.06;
-
     const dx=player.position.x-npc.mesh.position.x, dz=player.position.z-npc.mesh.position.z;
     const inRange = Math.sqrt(dx*dx+dz*dz) < 3.5;
     if (!inRange) npc.talkVisible = false;
+
+    // Wander AI — pause when player is nearby or talking
+    if (!inRange) {
+      if (npc.walkTarget) {
+        const tx = npc.walkTarget.x - npc.mesh.position.x;
+        const tz = npc.walkTarget.z - npc.mesh.position.z;
+        const dist = Math.sqrt(tx*tx + tz*tz);
+        if (dist < 0.15) {
+          // reached target — wait then pick new one
+          npc.walkTarget = null;
+          npc.walkWait = 1.5 + Math.random() * 2.5;
+        } else {
+          const angle = Math.atan2(tx, tz);
+          npc.mesh.position.x += Math.sin(angle) * NPC_SPEED * dt;
+          npc.mesh.position.z += Math.cos(angle) * NPC_SPEED * dt;
+          npc.mesh.rotation.y = angle;
+          // idle bob while walking
+          npc.mesh.position.y = Math.sin(t * 8 + i) * 0.04;
+        }
+      } else {
+        npc.walkWait -= dt;
+        npc.mesh.position.y = Math.sin(t * 1.4 + i * 1.3) * 0.04;
+        if (npc.walkWait <= 0) {
+          // pick a random target within WANDER_RADIUS of home
+          const angle = Math.random() * Math.PI * 2;
+          const r = 3 + Math.random() * WANDER_RADIUS;
+          npc.walkTarget = {
+            x: npc.homePos.x + Math.cos(angle) * r,
+            z: npc.homePos.z + Math.sin(angle) * r,
+          };
+        }
+      }
+    } else {
+      // face player when in range
+      npc.mesh.rotation.y = Math.atan2(dx, dz);
+      npc.mesh.position.y = Math.sin(t * 1.4 + i * 1.3) * 0.04;
+      npc.walkTarget = null;
+    }
+
     npc.hintEl.style.display   = inRange && !npc.talkVisible ? 'block' : 'none';
     npc.bubbleEl.style.display = npc.talkVisible ? 'block' : 'none';
     npc.hintEl.textContent = inRange && !npc.talkVisible ? '[E] Talk' : '';

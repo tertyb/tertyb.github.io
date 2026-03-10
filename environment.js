@@ -197,7 +197,13 @@ const npcs = npcDefs.map(def => {
   mesh.rotation.y = def.rot;
   mesh.userData.baseRot = def.rot;
   scene.add(mesh);
-  return { mesh, ...def, talkVisible: false, dialogueIdx: 0 };
+  return {
+    mesh, ...def,
+    talkVisible: false, dialogueIdx: 0,
+    homePos: { x: def.pos[0], z: def.pos[1] },
+    walkTarget: null,
+    walkWait: 1 + Math.random() * 2,
+  };
 });
 
 // ── Colliders ─────────────────────────────────────────────────────────────────
