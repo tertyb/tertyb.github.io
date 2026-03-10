@@ -40,12 +40,45 @@ ground.rotation.x = -Math.PI / 2;
 ground.receiveShadow = true;
 scene.add(ground);
 
-// ── Path ──────────────────────────────────────────────────────────────────────
-const pathMat = new THREE.MeshLambertMaterial({ map: makeDirtTex() });
-const p1 = new THREE.Mesh(new THREE.PlaneGeometry(4, 80), pathMat);
-p1.rotation.x = -Math.PI/2; p1.position.set(0, 0.01, 5); p1.receiveShadow = true; scene.add(p1);
-const p2 = new THREE.Mesh(new THREE.PlaneGeometry(80, 4), pathMat);
-p2.rotation.x = -Math.PI/2; p2.position.set(0, 0.01, -5); p2.receiveShadow = true; scene.add(p2);
+// ── Roads ─────────────────────────────────────────────────────────────────────
+function makeRoadTex(isVertical) {
+  const c = document.createElement('canvas'); c.width = 128; c.height = 512;
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = '#3a3a3a'; ctx.fillRect(0,0,128,512);
+  // shoulder lines
+  ctx.fillStyle = '#e8e8e0'; ctx.fillRect(0,0,4,512); ctx.fillRect(124,0,4,512);
+  // dashed center line
+  ctx.fillStyle = '#f0e040';
+  for (let y=0; y<512; y+=60) { ctx.fillRect(60,y,8,36); }
+  const t = new THREE.CanvasTexture(c);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.encoding = THREE.sRGBEncoding;
+  return t;
+}
+function makeRoadSeg(x, z, w, len, rotY=0, y=0.02) {
+  const isV = Math.abs(rotY) < 0.1;
+  const tex = makeRoadTex(isV);
+  tex.repeat.set(1, len / w);
+  const mesh = new THREE.Mesh(
+    new THREE.PlaneGeometry(w, len),
+    new THREE.MeshLambertMaterial({ map: tex })
+  );
+  mesh.rotation.x = -Math.PI/2;
+  mesh.rotation.z = rotY;
+  mesh.position.set(x, y, z);
+  mesh.receiveShadow = true;
+  scene.add(mesh);
+}
+// Main N-S road (runs z: -60 to +60 at x=0)
+makeRoadSeg(0, 0, 4, 120);
+// Main E-W road — slightly higher so the intersection has no z-fighting
+makeRoadSeg(0, 0, 4, 120, Math.PI/2, 0.03);
+// Side streets — each starts at main road and runs to a building cluster.
+// center = halfway between junction and destination
+makeRoadSeg(14, 18, 3, 28, Math.PI/2);   // x=0→28 at z=18 (brick house)
+makeRoadSeg(-16, 22, 3, 32, Math.PI/2);  // x=0→-32 at z=22 (gray apt)
+makeRoadSeg(11, -35, 3, 22, Math.PI/2);  // x=0→22 at z=-35 (blue bldg)
+makeRoadSeg(0, 30, 3, 40);               // z=0→40 at x=0, toward pink house
 
 // ── Sky (anime skybox texture) ────────────────────────────────────────────────
 const skyTex = new THREE.TextureLoader().load(b64ToDataURL(ASSETS.sky, 'image/jpeg'));
