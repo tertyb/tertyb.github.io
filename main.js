@@ -210,6 +210,7 @@ function animate() {
   updateMcDonalds(dt);
   updateBasketball(dt);
   updateBIGAshdod(dt);
+  updatePort(dt);
 
   renderer.render(scene, camera);
 }
