@@ -6,6 +6,40 @@ function animate() {
   const dt = clock.getDelta();
   if (!modelLoaded) { renderer.render(scene, camera); return; }
 
+  // Plane flying
+  if (inPlane) {
+    if (keys['KeyW']||keys['ArrowUp'])   planeSpeed = Math.min(planeSpeed + 160*dt, 85);
+    if (keys['KeyS']||keys['ArrowDown']) planeSpeed = Math.max(planeSpeed - 90*dt, 0);
+    planeSpeed *= Math.pow(0.994, dt * 60);
+
+    if (planeSpeed > 1) {
+      const steer = (keys['KeyA']||keys['ArrowLeft'] ? 1 : keys['KeyD']||keys['ArrowRight'] ? -1 : 0) * dt * 1.2;
+      playerPlane.rotation.y += steer;
+      // Bank visually
+      const bankTarget = (keys['KeyA']||keys['ArrowLeft'] ? 0.32 : keys['KeyD']||keys['ArrowRight'] ? -0.32 : 0);
+      playerPlane.rotation.z += (bankTarget - playerPlane.rotation.z) * Math.min(1, dt * 4);
+    }
+    // Climb — direct strong input, independent of speed
+    const climb = keys['Space'] ? 1 : (keys['ShiftLeft']||keys['ShiftRight']) ? -1 : 0;
+    planeVelY += climb * 14 * dt;
+    // Gravity only when airborne
+    if (playerPlane.position.y > 0.7) planeVelY -= 3.5 * dt;
+    planeVelY = Math.max(-15, Math.min(15, planeVelY));
+    playerPlane.position.x += Math.sin(playerPlane.rotation.y) * planeSpeed * dt;
+    playerPlane.position.z += Math.cos(playerPlane.rotation.y) * planeSpeed * dt;
+    playerPlane.position.y += planeVelY * dt;
+    playerPlane.position.x = Math.max(-142, Math.min(142, playerPlane.position.x));
+    playerPlane.position.z = Math.max(-142, Math.min(142, playerPlane.position.z));
+    // Pitch visual
+    playerPlane.rotation.x = -planeVelY * 0.03;
+    // Land on ground
+    if (playerPlane.position.y <= 0.56) {
+      playerPlane.position.y = 0.56;
+      if (planeVelY < 0) planeVelY = 0;
+      planeSpeed *= Math.pow(0.90, dt * 60);
+    }
+  }
+
   // Car driving
   if (inCar) {
     if (keys['KeyW']||keys['ArrowUp'])   carSpeed = Math.min(carSpeed + 200*dt, 400);
@@ -25,7 +59,7 @@ function animate() {
 
   // Player movement
   let mx=0, mz=0, isMoving=false;
-  if (!inCar) {
+  if (!inCar && !inPlane) {
     if (keys['KeyW']||keys['ArrowUp'])    mz -= 1;
     if (keys['KeyS']||keys['ArrowDown'])  mz += 1;
     if (keys['KeyA']||keys['ArrowLeft'])  mx -= 1;
@@ -81,9 +115,9 @@ function animate() {
   });
 
   // Camera
-  const camTarget = inCar ? car : player;
-  const camDist = inCar ? 14 : 9;
-  const camHeight = inCar ? 1.5 : 1.0;
+  const camTarget = inPlane ? playerPlane : (inCar ? car : player);
+  const camDist   = inPlane ? 22 : (inCar ? 14 : 9);
+  const camHeight = inPlane ? 4.0 : (inCar ? 1.5 : 1.0);
   const camOffX = Math.sin(camYaw) * Math.cos(camPitch) * camDist;
   const camOffY = Math.sin(camPitch) * camDist;
   const camOffZ = Math.cos(camYaw) * Math.cos(camPitch) * camDist;
@@ -96,7 +130,7 @@ function animate() {
   camera.lookAt(camTarget.position.x, camTarget.position.y + camHeight, camTarget.position.z);
 
   // Car enter hint
-  const cdx2 = (inCar ? 999 : player.position.x - car.position.x);
+  const cdx2 = (inCar || inPlane ? 999 : player.position.x - car.position.x);
   const cdz2 = (inCar ? 999 : player.position.z - car.position.z);
   const nearCar = Math.sqrt(cdx2*cdx2+cdz2*cdz2) < 5;
   carHintEl.style.display = nearCar ? 'block' : 'none';
@@ -211,6 +245,8 @@ function animate() {
   updateBasketball(dt);
   updateBIGAshdod(dt);
   updatePort(dt);
+  updateMilitary(dt);
+  updatePlanes(dt);
 
   renderer.render(scene, camera);
 }

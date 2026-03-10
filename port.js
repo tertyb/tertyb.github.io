@@ -294,7 +294,7 @@ const REST_X = PORT_X, REST_Z = PORT_Z - 2;
   colliders.push({x:REST_X, z:REST_Z, radius:6});
 })();
 
-// ── La Mer Sign ───────────────────────────────────────────────────────────────
+// ── Allegra & Leon Sign ───────────────────────────────────────────────────────
 (function makeLaMerSign() {
   const c=document.createElement('canvas'); c.width=512; c.height=192;
   const ctx=c.getContext('2d');
@@ -306,14 +306,14 @@ const REST_X = PORT_X, REST_Z = PORT_Z - 2;
   for(let wx=0; wx<512; wx+=4) ctx.lineTo(wx, 185+Math.sin(wx*0.08)*5);
   ctx.stroke();
   ctx.strokeStyle='#aaddff'; ctx.lineWidth=6; ctx.strokeRect(5,5,502,182);
-  ctx.font='bold 100px Georgia,serif';
+  ctx.font='bold 58px Georgia,serif';
   ctx.textAlign='center'; ctx.textBaseline='middle';
   ctx.fillStyle='#ffffff';
   ctx.shadowColor='rgba(0,100,200,0.8)'; ctx.shadowBlur=20;
-  ctx.fillText('La Mer',256,82);
+  ctx.fillText('Allegra & Leon',256,78);
   ctx.font='italic 22px Georgia,serif';
   ctx.fillStyle='#aaddff'; ctx.shadowBlur=4;
-  ctx.fillText('⚓  Fine Dining at the Port  ⚓',256,154);
+  ctx.fillText('⚓  Fine Dining at the Port  ⚓',256,148);
   const tex=new THREE.CanvasTexture(c); tex.encoding=THREE.sRGBEncoding;
   const sg=new THREE.Group();
   sg.add(new THREE.Mesh(new THREE.BoxGeometry(5.5,2.0,0.15),
@@ -358,7 +358,7 @@ portSplatText.style.cssText=[
   'pointer-events:none','z-index:101','display:none','text-align:center',
   'font-family:Georgia,serif','letter-spacing:2px',
 ].join(';');
-portSplatText.innerHTML='🍞 Bon appétit, Snoopy! 🍞<br><span style="font-size:20px;letter-spacing:1px">Toast with Black Truffle<br>from La Mer 🌊</span>';
+portSplatText.innerHTML='🍞 Bon appétit, Snoopy! 🍞<br><span style="font-size:20px;letter-spacing:1px">Toast with Black Truffle<br>from Allegra & Leon 🌊</span>';
 document.body.appendChild(portSplatText);
 
 function makeToastMesh() {
