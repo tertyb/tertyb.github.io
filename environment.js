@@ -33,7 +33,7 @@ function makeDirtTex() {
   const t=new THREE.CanvasTexture(c); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(3,20); t.encoding=THREE.sRGBEncoding; return t;
 }
 const ground = new THREE.Mesh(
-  new THREE.PlaneGeometry(300, 300),
+  new THREE.PlaneGeometry(800, 800),
   new THREE.MeshLambertMaterial({ map: makeGrassTex() })
 );
 ground.rotation.x = -Math.PI / 2;
@@ -41,13 +41,11 @@ ground.receiveShadow = true;
 scene.add(ground);
 
 // ── Roads ─────────────────────────────────────────────────────────────────────
-function makeRoadTex(isVertical) {
+function makeRoadTex() {
   const c = document.createElement('canvas'); c.width = 128; c.height = 512;
   const ctx = c.getContext('2d');
   ctx.fillStyle = '#3a3a3a'; ctx.fillRect(0,0,128,512);
-  // shoulder lines
   ctx.fillStyle = '#e8e8e0'; ctx.fillRect(0,0,4,512); ctx.fillRect(124,0,4,512);
-  // dashed center line
   ctx.fillStyle = '#f0e040';
   for (let y=0; y<512; y+=60) { ctx.fillRect(60,y,8,36); }
   const t = new THREE.CanvasTexture(c);
@@ -55,30 +53,45 @@ function makeRoadTex(isVertical) {
   t.encoding = THREE.sRGBEncoding;
   return t;
 }
-function makeRoadSeg(x, z, w, len, rotY=0, y=0.02) {
-  const isV = Math.abs(rotY) < 0.1;
-  const tex = makeRoadTex(isV);
-  tex.repeat.set(1, len / w);
-  const mesh = new THREE.Mesh(
-    new THREE.PlaneGeometry(w, len),
-    new THREE.MeshLambertMaterial({ map: tex })
-  );
-  mesh.rotation.x = -Math.PI/2;
-  mesh.rotation.z = rotY;
-  mesh.position.set(x, y, z);
-  mesh.receiveShadow = true;
-  scene.add(mesh);
+const roadMat = new THREE.MeshLambertMaterial({ map: makeRoadTex() });
+function makeRoad(x, z, w, len, vertical=true, yOff=0.02) {
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(w, len), roadMat);
+  m.rotation.x = -Math.PI / 2;
+  if (!vertical) m.rotation.z = Math.PI / 2;
+  m.position.set(x, yOff, z);
+  m.receiveShadow = true;
+  scene.add(m);
 }
-// Main N-S road (runs z: -60 to +60 at x=0)
-makeRoadSeg(0, 0, 4, 120);
-// Main E-W road — slightly higher so the intersection has no z-fighting
-makeRoadSeg(0, 0, 4, 120, Math.PI/2, 0.03);
-// Side streets — each starts at main road and runs to a building cluster.
-// center = halfway between junction and destination
-makeRoadSeg(14, 18, 3, 28, Math.PI/2);   // x=0→28 at z=18 (brick house)
-makeRoadSeg(-16, 22, 3, 32, Math.PI/2);  // x=0→-32 at z=22 (gray apt)
-makeRoadSeg(11, -35, 3, 22, Math.PI/2);  // x=0→22 at z=-35 (blue bldg)
-makeRoadSeg(0, 30, 3, 40);               // z=0→40 at x=0, toward pink house
+
+// ── Road layout: one Main Street (E-W) + T-junction spurs (N-S only) ─────────
+// Main Street runs east-west at z=0
+makeRoad(0, 0, 5, 130, false);
+
+// North spurs — branch off Main St going north (positive z), y=0.03 to sit on top
+// Spur center = halfway from z=0 to z=end
+makeRoad(-30, 22, 4, 44, true, 0.03);  // Oak Ave: x=-30, z=0→44
+makeRoad( 15, 20, 4, 40, true, 0.03);  // Elm St:  x=15,  z=0→40
+
+// South spurs — branch off Main St going south (negative z), y=0.03
+makeRoad(-20, -22, 4, 44, true, 0.03); // Maple Ave: x=-20, z=0→-44
+makeRoad( 35, -18, 4, 36, true, 0.03); // Pine St:   x=35,  z=0→-36
+
+// Second E-W road further north
+makeRoad(  0,  55, 4, 160, false, 0.02); // North Blvd z=55
+// Second E-W road further south
+makeRoad(  0, -55, 4, 160, false, 0.02); // South Blvd z=-55
+// Far east N-S connector (x=65)
+makeRoad( 65,   0, 4, 120, true,  0.03);
+// Far west N-S connector (x=-65)
+makeRoad(-65,   0, 4, 120, true,  0.03);
+// East cross-street at z=55
+makeRoad( 65,  55, 4,  28, true,  0.04); // short north connector east
+// West cross-street at z=55
+makeRoad(-65,  55, 4,  28, true,  0.04);
+// East cross-street at z=-55
+makeRoad( 65, -55, 4,  28, true,  0.04);
+// West cross-street at z=-55
+makeRoad(-65, -55, 4,  28, true,  0.04);
 
 // ── Sky (anime skybox texture) ────────────────────────────────────────────────
 const skyTex = new THREE.TextureLoader().load(b64ToDataURL(ASSETS.sky, 'image/jpeg'));
@@ -91,7 +104,7 @@ skyMesh.renderOrder = -1;
 scene.add(skyMesh);
 
 // Fog to blend distant objects with sky horizon
-scene.fog = new THREE.Fog(0xb8cfe8, 80, 350);
+scene.fog = new THREE.Fog(0xb8cfe8, 150, 600);
 renderer.setClearColor(0xb8cfe8);
 
 // ── Clouds ────────────────────────────────────────────────────────────────────
@@ -294,9 +307,16 @@ function makeMountain(x, z, scale=1, color=0x6b7f6b) {
   });
   g.position.set(x,0,z); scene.add(g);
 }
-[[120,120,1.2,0x5a6e5a],[100,130,0.9,0x6b7f6b],[-120,110,1.0,0x4a5e4a],
- [130,-110,1.1,0x5a6e5a],[-115,-120,0.8,0x6b7f6b],[115,90,0.75,0x7a8f7a],
- [-100,-100,1.0,0x5a6e5a],[80,140,0.85,0x6b7f6b]
+// Close ring ~150 units out
+[[150, 150,1.4,0x5a6e5a],[130, 180,1.1,0x6b7f6b],[-150, 140,1.2,0x4a5e4a],
+ [-180, 160,1.0,0x5a6e5a],[160,-140,1.3,0x6b7f6b],[-160,-150,1.1,0x4a5e4a],
+ [140,-170,1.0,0x7a8f7a],[-130,-180,0.9,0x5a6e5a]
+].forEach(([x,z,s,c])=>makeMountain(x,z,s,c));
+// Far ring ~260 units out — taller, dominating the horizon
+[[260,  20,2.0,0x4a5e4a],[-260,  30,1.8,0x3d5040],[200, 200,2.2,0x5a6e5a],
+ [-200, 220,1.9,0x4a5e4a],[220,-200,2.1,0x3d5040],[-220,-210,1.7,0x4a5e4a],
+ [ 30, 270,1.8,0x5a6e5a],[ -40,-270,2.0,0x3d5040],[270,-80,1.9,0x4a5e4a],
+ [-270, 80,1.7,0x5a6e5a],[180, 240,1.6,0x6b7f6b],[-180,-240,1.8,0x4a5e4a]
 ].forEach(([x,z,s,c])=>makeMountain(x,z,s,c));
 
 // ── Ponds ─────────────────────────────────────────────────────────────────────
@@ -339,6 +359,7 @@ makePond(62,30,5);
 })();
 
 // ── Street Lamps ──────────────────────────────────────────────────────────────
+const lampLights = [];
 function makeLamp(x, z) {
   const g=new THREE.Group();
   const pMat=new THREE.MeshLambertMaterial({color:0x444444});
@@ -349,6 +370,9 @@ function makeLamp(x, z) {
   const globe=new THREE.Mesh(new THREE.SphereGeometry(0.22,8,6),
     new THREE.MeshBasicMaterial({color:0xffffcc}));
   globe.position.set(0.9,4.05,0); g.add(globe);
+  const pl = new THREE.PointLight(0xffe8a0, 0, 14);
+  pl.position.set(x+0.9, 4.05, z); scene.add(pl);
+  lampLights.push(pl);
   g.position.set(x,0,z); scene.add(g);
 }
 [[10,0],[-10,0],[0,10],[0,-10],[20,20],[-20,-20],[30,0],[-30,0],

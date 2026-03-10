@@ -18,8 +18,11 @@ window.addEventListener('keydown', e => {
         if (near) {
           if (near.talkVisible) {
             near.dialogueIdx = (near.dialogueIdx + 1) % near.dialogues.length;
-          near.bubbleEl.innerHTML = `<b>${near.name}</b><br>${near.dialogues[near.dialogueIdx].replace(/\n/g,'<br>')}`;
-          } else { near.talkVisible = true; }
+            near.bubbleEl.innerHTML = `<b>${near.name}</b><br>${near.dialogues[near.dialogueIdx].replace(/\n/g,'<br>')}`;
+          } else {
+            near.talkVisible = true;
+            tryTriggerQuest(near.name);
+          }
         }
       }
     }

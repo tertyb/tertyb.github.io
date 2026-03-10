@@ -22,7 +22,9 @@ window.addEventListener('resize', () => {
 });
 
 // ── Lighting ──────────────────────────────────────────────────────────────────
-scene.add(new THREE.AmbientLight(0xfff4e0, 1.2));
+const ambientLight = new THREE.AmbientLight(0xfff4e0, 1.2);
+scene.add(ambientLight);
+const hemiLight = new THREE.HemisphereLight(0x87CEEB, 0x4caf50, 1.0);
 const sun = new THREE.DirectionalLight(0xfffde7, 3.0);
 sun.position.set(20, 40, 20);
 sun.castShadow = true;
@@ -31,5 +33,5 @@ sun.shadow.camera.top  =  80; sun.shadow.camera.bottom = -80;
 sun.shadow.mapSize.set(2048, 2048);
 sun.shadow.bias = -0.001;
 scene.add(sun);
-scene.add(new THREE.HemisphereLight(0x87CEEB, 0x4caf50, 1.0));
+scene.add(hemiLight);
 

@@ -109,8 +109,38 @@ function animate() {
   // Clouds drift
   clouds.forEach((c,i) => { c.position.x += 0.005*(i%2===0?1:-1); });
 
-  // NPC wander & bubbles
+  // Animal wander
   const t = clock.getElapsedTime();
+  for (const a of animals) {
+    if (a.walkTarget) {
+      const tx = a.walkTarget.x - a.mesh.position.x;
+      const tz = a.walkTarget.z - a.mesh.position.z;
+      const dist = Math.sqrt(tx*tx + tz*tz);
+      if (dist < 0.15) {
+        a.walkTarget = null;
+        a.walkWait = 1 + Math.random() * 3;
+      } else {
+        const angle = Math.atan2(tx, tz);
+        a.mesh.position.x += Math.sin(angle) * a.speed * dt;
+        a.mesh.position.z += Math.cos(angle) * a.speed * dt;
+        a.mesh.rotation.y = angle;
+        a.mesh.position.y = Math.abs(Math.sin(t * 6 * a.speed)) * 0.05;
+      }
+    } else {
+      a.walkWait -= dt;
+      a.mesh.position.y = 0;
+      if (a.walkWait <= 0) {
+        const angle = Math.random() * Math.PI * 2;
+        const r = 2 + Math.random() * a.radius;
+        a.walkTarget = {
+          x: a.homePos.x + Math.cos(angle) * r,
+          z: a.homePos.z + Math.sin(angle) * r,
+        };
+      }
+    }
+  }
+
+  // NPC wander & bubbles
   const NPC_SPEED = 1.4;
   const WANDER_RADIUS = 9;
   for (const [i, npc] of npcs.entries()) {
@@ -170,6 +200,13 @@ function animate() {
   }
 
   skyMesh.position.set(camera.position.x, 30, camera.position.z);
+
+  updateDayNight(dt);
+  updateWeather(dt);
+  updateQuests(dt);
+  updateCarAI(dt);
+  updateJaja(dt);
+
   renderer.render(scene, camera);
 }
 
