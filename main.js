@@ -250,6 +250,7 @@ function animate() {
   updateGrandparents(dt);
   updateCombat(dt);
   updateSuperPharm(dt);
+  updateJewelry(dt);
 
   renderer.render(scene, camera);
 }
