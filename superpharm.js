@@ -16,10 +16,10 @@ const _spGreen   = new THREE.MeshLambertMaterial({ color: 0x009944 });
 const _spWhite   = new THREE.MeshLambertMaterial({ color: 0xf8f8f8 });
 const _spGray    = new THREE.MeshLambertMaterial({ color: 0xd0d0d0 });
 const _spGlass   = new THREE.MeshBasicMaterial({ color: 0xc0eaff, transparent:true, opacity:0.5 });
-const _spShelf   = new THREE.MeshLambertMaterial({ color: 0x7a4a28 });   // warm brown
-const _spShelfDk = new THREE.MeshLambertMaterial({ color: 0x4e2e10 });   // dark brown
-const _spTile    = new THREE.MeshLambertMaterial({ color: 0xf5e6d0 });   // warm ivory
-const _spTileGrn = new THREE.MeshLambertMaterial({ color: 0xa8d5b0 });   // stronger green
+const _spShelf   = new THREE.MeshLambertMaterial({ color: 0x5d3a1a });   // dark walnut brown
+const _spShelfDk = new THREE.MeshLambertMaterial({ color: 0xf5deb3 });   // wheat/cream boards (high contrast)
+const _spTile    = new THREE.MeshLambertMaterial({ color: 0xffffff });   // bright white
+const _spTileGrn = new THREE.MeshLambertMaterial({ color: 0x4dd0e1 });   // cyan-teal
 const _spCounter = new THREE.MeshLambertMaterial({ color: 0x006633 });   // deep green counter
 
 // ── Exterior ──────────────────────────────────────────────────────────────────
@@ -103,12 +103,23 @@ const _spCounter = new THREE.MeshLambertMaterial({ color: 0x006633 });   // deep
     new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(arrowC),transparent:true}));
   arrowSign.position.set(SP_CX - SP_HD - 5, 3.2, SP_CZ); scene.add(arrowSign);
 
-  // Colliders — walls with entrance gap
-  colliders.push({x:SP_CX,          z:SP_CZ + SP_HW,  radius: SP_HD});  // north wall
-  colliders.push({x:SP_CX,          z:SP_CZ - SP_HW,  radius: SP_HD});  // south wall
-  colliders.push({x:SP_CX + SP_HD,  z:SP_CZ,           radius: SP_HW}); // east wall
-  colliders.push({x:SP_CX - SP_HD,  z:SP_CZ + 16,     radius: 4});      // west-north
-  colliders.push({x:SP_CX - SP_HD,  z:SP_CZ - 16,     radius: 4});      // west-south
+  // Colliders — thin wall segments (r=2) spaced every 4 units along each wall
+  const _wR = 2;
+  // North wall (z=+27), full width x: 128→168
+  for (let wx = SP_CX - SP_HD + 2; wx <= SP_CX + SP_HD; wx += 4)
+    colliders.push({x: wx, z: SP_CZ + SP_HW, radius: _wR});
+  // South wall (z=-27), full width
+  for (let wx = SP_CX - SP_HD + 2; wx <= SP_CX + SP_HD; wx += 4)
+    colliders.push({x: wx, z: SP_CZ - SP_HW, radius: _wR});
+  // East wall (x=168), full depth z: -27→+27
+  for (let wz = SP_CZ - SP_HW + 2; wz <= SP_CZ + SP_HW; wz += 4)
+    colliders.push({x: SP_CX + SP_HD, z: wz, radius: _wR});
+  // West wall north half (z=4→27) — leaves entrance gap at z=-4 to +4
+  for (let wz = SP_CZ + 5; wz <= SP_CZ + SP_HW; wz += 4)
+    colliders.push({x: SP_CX - SP_HD, z: wz, radius: _wR});
+  // West wall south half (z=-27→-4)
+  for (let wz = SP_CZ - SP_HW; wz <= SP_CZ - 5; wz += 4)
+    colliders.push({x: SP_CX - SP_HD, z: wz, radius: _wR});
 })();
 
 // ── Interior floor ────────────────────────────────────────────────────────────
@@ -391,22 +402,56 @@ SP_BEAUTY.forEach((p, pi) => {
   });
 })();
 
-// ── Shopping cart props ────────────────────────────────────────────────────────
-[SP_CZ - SP_HW + 4, SP_CZ - SP_HW + 7].forEach(cz => {
+// ── Shopping cart builder ──────────────────────────────────────────────────────
+function makeShoppingCart(cx, cz, isPlayerCart) {
   const cart = new THREE.Group();
-  const frame = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.6, 1.0),
-    new THREE.MeshLambertMaterial({color:0xaaaaaa, wireframe:true}));
-  frame.position.y=0.6; cart.add(frame);
-  const base = new THREE.Mesh(new THREE.BoxGeometry(0.75, 0.06, 1.05),
-    new THREE.MeshLambertMaterial({color:0x888888}));
-  base.position.y=0.35; cart.add(base);
-  [[-0.28,-0.35],[0.28,-0.35],[-0.28,0.35],[0.28,0.35]].forEach(([wx,wz]) => {
-    const wheel = new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.08,0.06,8),
-      new THREE.MeshLambertMaterial({color:0x333333}));
-    wheel.rotation.x=Math.PI/2; wheel.position.set(wx,0.08,wz); cart.add(wheel);
+  const metalM = new THREE.MeshLambertMaterial({color: isPlayerCart ? 0x00cc55 : 0xbbbbbb});
+  // Basket frame (4 sides)
+  // side walls of basket
+  [[-0.42,0,0],[0.42,0,0]].forEach(([px]) => {
+    const bar = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.5, 1.1), metalM);
+    bar.position.set(px, 0.65, 0); cart.add(bar);
   });
-  cart.position.set(SP_CX - SP_HD + 2, 0, cz); scene.add(cart);
-});
+  [0,-1,1].forEach(pz => {
+    if (pz === 0) return;
+    const bar = new THREE.Mesh(new THREE.BoxGeometry(0.85, 0.5, 0.06), metalM);
+    bar.position.set(0, 0.65, pz * 0.55); cart.add(bar);
+  });
+  // Top rim
+  const rim = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.05, 1.15), metalM);
+  rim.position.y = 0.92; cart.add(rim);
+  // Bottom basket floor
+  const floor2 = new THREE.Mesh(new THREE.BoxGeometry(0.82, 0.04, 1.08),
+    new THREE.MeshLambertMaterial({color:0x999999}));
+  floor2.position.y = 0.38; cart.add(floor2);
+  // Handle bar
+  const handle = new THREE.Mesh(new THREE.BoxGeometry(0.88, 0.06, 0.06),
+    new THREE.MeshLambertMaterial({color:0x444444}));
+  handle.position.set(0, 1.05, -0.55); cart.add(handle);
+  // Wheels
+  [[-0.3,-0.42],[0.3,-0.42],[-0.3,0.42],[0.3,0.42]].forEach(([wx,wz]) => {
+    const wheel = new THREE.Mesh(new THREE.CylinderGeometry(0.1,0.1,0.07,8),
+      new THREE.MeshLambertMaterial({color:0x222222}));
+    wheel.rotation.x = Math.PI/2; wheel.position.set(wx, 0.1, wz); cart.add(wheel);
+  });
+  cart.position.set(cx, 0, cz);
+  scene.add(cart);
+  return cart;
+}
+
+// Parked carts near entrance (stack)
+[0,1,2].forEach(i => makeShoppingCart(SP_CX - SP_HD + 2, SP_CZ - SP_HW + 4 + i*1.2, false));
+
+// Carts scattered through aisles
+makeShoppingCart(AISLE_XS[0] - 1, SP_CZ + 5,  false);
+makeShoppingCart(AISLE_XS[1] + 1, SP_CZ - 5,  false);
+makeShoppingCart(AISLE_XS[2] - 1, SP_CZ + 8,  false);
+makeShoppingCart(AISLE_XS[3] + 1, SP_CZ - 8,  false);
+makeShoppingCart(AISLE_XS[4] - 1, SP_CZ + 3,  false);
+
+// Player's active cart (green) — follows player inside store
+const spPlayerCart = makeShoppingCart(SP_CX - SP_HD + 5, SP_CZ, true);
+const spCartItems = [];  // items placed inside player cart
 
 // ── UI ────────────────────────────────────────────────────────────────────────
 const spCart = [];
@@ -468,10 +513,21 @@ window.addEventListener('keydown', e => {
   const nearP = getSPNearProduct();
   if (nearP) {
     nearP.inCart = true;
-    nearP.group.position.y += 30;  // remove from shelf
+    // Move item into the player cart visually
+    const slotIdx = spCartItems.length;
+    const row = Math.floor(slotIdx / 3);
+    const col = slotIdx % 3;
+    nearP.group.position.set(
+      spPlayerCart.position.x + (col - 1) * 0.25,
+      0.55 + row * 0.28,
+      spPlayerCart.position.z
+    );
+    nearP.group.rotation.set(0, 0, 0);
+    nearP.group.scale.set(0.7, 0.7, 0.7);
+    spCartItems.push(nearP.group);
     spCart.push(nearP.data);
     updateSpCartUI();
-    spHintEl.textContent = `✅ נוסף לסל: ${nearP.data.name}  ₪${nearP.data.price}`;
+    spHintEl.textContent = `✅ נוסף לעגלה 🛒  ${nearP.data.name} — ₪${nearP.data.price}`;
     spHintEl.style.display='block';
     return;
   }
@@ -487,6 +543,9 @@ window.addEventListener('keydown', e => {
       `<b style="font-size:16px">סה"כ: ₪${total}</b><br><br>` +
       `<span style="color:#88ffaa">תודה סנופי! קניה נעימה 💚</span>`;
     spReceiptEl.style.display='block';
+    // Clear items from cart visually
+    spCartItems.forEach(g => { g.position.y += 50; });
+    spCartItems.length = 0;
     spCart.length=0;
     updateSpCartUI();
     spReceiptTimer=5.0;
@@ -495,6 +554,26 @@ window.addEventListener('keydown', e => {
 
 // ── Update ────────────────────────────────────────────────────────────────────
 function updateSuperPharm(dt) {
+  // Player cart follows player at a small offset behind them
+  const insideSP = player.position.x > SP_CX - SP_HD - 2 && player.position.x < SP_CX + SP_HD &&
+                   player.position.z > SP_CZ - SP_HW && player.position.z < SP_CZ + SP_HW;
+  if (insideSP) {
+    const behindX = player.position.x - Math.sin(player.rotation.y) * 1.6;
+    const behindZ = player.position.z - Math.cos(player.rotation.y) * 1.6;
+    spPlayerCart.position.x += (behindX - spPlayerCart.position.x) * Math.min(1, dt * 5);
+    spPlayerCart.position.z += (behindZ - spPlayerCart.position.z) * Math.min(1, dt * 5);
+    spPlayerCart.rotation.y = player.rotation.y;
+    // Update items sitting inside cart
+    spCartItems.forEach((g, i) => {
+      const row = Math.floor(i / 3), col = i % 3;
+      g.position.set(
+        spPlayerCart.position.x + (col - 1) * 0.25,
+        0.55 + row * 0.28,
+        spPlayerCart.position.z
+      );
+    });
+  }
+
   if (spReceiptTimer > 0) {
     spReceiptTimer -= dt;
     if (spReceiptTimer <= 0) spReceiptEl.style.display='none';
