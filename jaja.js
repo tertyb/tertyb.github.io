@@ -135,8 +135,8 @@ const JAJA_X = -5, JAJA_Z = -30;
     pole.position.set(px, -3.2, 0); signGroup.add(pole);
   });
 
-  // Position: in front of restaurant, elevated
-  signGroup.position.set(JAJA_X, 12.0, JAJA_Z + 7.5);
+  // Position: in front of restaurant, at ground level
+  signGroup.position.set(JAJA_X + 6.0, 3.0, JAJA_Z + 7.5);
   scene.add(signGroup);
 
   // Animate gentle rotation/bob stored on object
@@ -170,7 +170,7 @@ splatText.style.cssText = [
   'pointer-events:none', 'z-index:101', 'display:none', 'text-align:center',
   'font-family:Impact,Arial Black,sans-serif', 'letter-spacing:4px',
 ].join(';');
-splatText.innerHTML = '🍝 JAJA! 🍝<br><span style="font-size:20px;letter-spacing:1px">Have some pasta!</span>';
+splatText.innerHTML = '🍝 JAJA! 🍝<br><span style="font-size:22px;letter-spacing:1px;direction:rtl">בתיאבון סנופי<br>הנה האוכל האהוב עליך<br>פסטה שמנת 🍝</span>';
 document.body.appendChild(splatText);
 
 function makePastaMesh() {
@@ -214,7 +214,8 @@ function updateJaja(dt) {
   // Gently bob the sign
   if (window._jajaSign) {
     window._jajaSign.rotation.y = Math.sin(Date.now() * 0.0008) * 0.06;
-    window._jajaSign.position.y = 12.0 + Math.sin(Date.now() * 0.0012) * 0.18;
+    window._jajaSign.position.y = 3.0 + Math.sin(Date.now() * 0.0012) * 0.18;
+    window._jajaSign.position.x = JAJA_X + 6.0;
   }
 
   // Proximity check — trigger once per visit

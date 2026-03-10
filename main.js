@@ -206,6 +206,7 @@ function animate() {
   updateQuests(dt);
   updateCarAI(dt);
   updateJaja(dt);
+  updateGDB(dt);
 
   renderer.render(scene, camera);
 }
