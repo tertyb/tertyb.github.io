@@ -2,23 +2,23 @@
 const QUESTS = [
   {
     id: 'baseball', giver: 'Charlie Brown',
-    start: "Good grief! I lost my baseball\nnear the big oak tree. Can you\nfind it for me?",
-    active: "The baseball is somewhere\nnear the trees... north-east!",
-    done: "You found it!! You're a\ngood sport, Snoopy! 🎉",
+    start: "סנופי! אבדתי את הכדור שלי\ליד העץ הגדול. תמצא אותו?\n(Snoopy! I lost my baseball!)",
+    active: "הכדור נמצא איפשהו ליד העצים\bצפון-מזרח! 💚",
+    done: "מצאת! אתה הכלב הכי טוב! 🎉\nהצבע האהוב עליך הוא ירוק 💚",
     reward: '⚾ Baseball found! +50 pts',
   },
   {
     id: 'flowers', giver: 'Lucy',
-    start: "I need 3 flowers for my\ndoctor's stand. Bring them\nto me! Five cents... FREE for you.",
-    active: "Find 3 flowers around\nthe park and bring them back!",
-    done: "Hmph. Fine, these are\nacceptable. Good dog.",
+    start: "סנופי הכי חכם בעולם — אז\nתמצא לי 3 פרחים לעמדת הרופאה!\n(Find 3 flowers for me!)",
+    active: "3 פרחים בפארק — תביא אותם\nחזרה אליי! 🌸",
+    done: "סנופי אכן הכי חכם! 🧠\nתודה, כלב טוב.",
     reward: '🌸 Flowers delivered! +50 pts',
   },
   {
     id: 'blanket', giver: 'Linus',
-    start: "Oh no! My security blanket\nbrew away to the fountain!\nCan you get it back?",
-    active: "My blanket is near\nthe town fountain...",
-    done: "Oh thank you Snoopy!\n✨ I feel secure again!",
+    start: "השמיכה שלי עפה לכיוון המזרקה!\nתחזיר לי אותה בבקשה?\n(My blanket flew to the fountain!)",
+    active: "השמיכה ליד המזרקה בעיר...",
+    done: "תודה סנופי! ✨\nאביתר בנאי שר על אהבה כמוך 🎵",
     reward: '🧣 Blanket returned! +50 pts',
   },
 ];

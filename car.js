@@ -1,7 +1,7 @@
 // ── Car ───────────────────────────────────────────────────────────────────────
 function buildCar() {
   const g = new THREE.Group();
-  const bodyMat = new THREE.MeshLambertMaterial({ color: 0xe74c3c });
+  const bodyMat = new THREE.MeshLambertMaterial({ color: 0xcc1a2a });
   const body = new THREE.Mesh(new THREE.BoxGeometry(2, 0.65, 4.2), bodyMat);
   body.position.y = 0.62; body.castShadow = true; g.add(body);
   const cabin = new THREE.Mesh(new THREE.BoxGeometry(1.65, 0.65, 2.3), bodyMat);
@@ -32,6 +32,16 @@ function buildCar() {
     const tl = new THREE.Mesh(new THREE.BoxGeometry(0.32,0.2,0.06), tailMat);
     tl.position.set(lx, 0.62, -2.12); g.add(tl);
   });
+  // Chery badge on hood
+  const badgeC = document.createElement('canvas'); badgeC.width=128; badgeC.height=32;
+  const bCtx = badgeC.getContext('2d');
+  bCtx.fillStyle='#cc1a2a'; bCtx.fillRect(0,0,128,32);
+  bCtx.fillStyle='#ffffff'; bCtx.font='bold 22px Arial'; bCtx.textAlign='center';
+  bCtx.fillText('CHERY',64,24);
+  const badge = new THREE.Mesh(new THREE.PlaneGeometry(0.9,0.22),
+    new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(badgeC),transparent:true}));
+  badge.rotation.x=-Math.PI/2; badge.position.set(0,1.0,1.6); g.add(badge);
+
   g.userData.wheels = wheels;
   return g;
 }
@@ -44,6 +54,6 @@ let inCar = false, carSpeed = 0;
 const carHintEl = document.createElement('div');
 carHintEl.className = 'bubble-hint';
 carHintEl.style.display = 'none';
-carHintEl.textContent = '[E] Enter Car';
+carHintEl.textContent = '[E] Enter Chery 🚗';
 document.getElementById('bubble-container').appendChild(carHintEl);
 

@@ -123,6 +123,21 @@ const clouds = [
   makeCloud(60,20,-70), makeCloud(-15,24,-55), makeCloud(30,26,-35), makeCloud(-50,30,-65)
 ];
 
+// ── Road mask (keeps trees/rocks/flowers off roads) ───────────────────────────
+function onRoad(x, z) {
+  const m = 2.5;
+  if (Math.abs(z)    < 2.5+m && x > -65 && x < 65)  return true; // Main St
+  if (Math.abs(z-55) < 2+m   && x > -80 && x < 80)  return true; // North Blvd
+  if (Math.abs(z+55) < 2+m   && x > -80 && x < 80)  return true; // South Blvd
+  if (Math.abs(x+30) < 2+m   && z > -2  && z < 46)  return true; // Oak Ave
+  if (Math.abs(x-15) < 2+m   && z > -2  && z < 42)  return true; // Elm St
+  if (Math.abs(x+20) < 2+m   && z < 2   && z > -46) return true; // Maple Ave
+  if (Math.abs(x-35) < 2+m   && z < 2   && z > -38) return true; // Pine St
+  if (Math.abs(x-65) < 2+m   && z > -62 && z < 62)  return true; // East connector
+  if (Math.abs(x+65) < 2+m   && z > -62 && z < 62)  return true; // West connector
+  return false;
+}
+
 // ── Trees ─────────────────────────────────────────────────────────────────────
 const treePositions = [
   [-8,-8],[8,-10],[-10,5],[12,3],[-6,12],[6,14],[-14,-2],[14,-6],[3,-14],[-3,-12],[16,10],[-16,8],
@@ -145,7 +160,7 @@ function makeTree(x, z, scale=1) {
   });
   g.position.set(x, 0, z); scene.add(g);
 }
-treePositions.forEach(([x,z]) => makeTree(x, z, .8+Math.random()*.5));
+treePositions.filter(([x,z]) => !onRoad(x,z)).forEach(([x,z]) => makeTree(x, z, .8+Math.random()*.5));
 
 // ── Doghouse ──────────────────────────────────────────────────────────────────
 function makeDoghouse(x, z) {
@@ -164,12 +179,14 @@ makeDoghouse(-6, -6);
 const fColors = [0xff6b6b,0xffe66d,0xff9ff3,0x74b9ff,0xffeaa7];
 for (let i=0; i<150; i++) {
   const a=Math.random()*Math.PI*2, r=8+Math.random()*80;
+  const fx=Math.cos(a)*r, fz=Math.sin(a)*r;
+  if (onRoad(fx, fz)) continue;
   const g = new THREE.Group();
   const stem = new THREE.Mesh(new THREE.CylinderGeometry(.04,.04,.4,5), new THREE.MeshBasicMaterial({ color:0x3a8a3a }));
   stem.position.y = .2; g.add(stem);
   const head = new THREE.Mesh(new THREE.SphereGeometry(.12,6,4), new THREE.MeshBasicMaterial({ color:fColors[i%5] }));
   head.position.y = .45; g.add(head);
-  g.position.set(Math.cos(a)*r, 0, Math.sin(a)*r); scene.add(g);
+  g.position.set(fx, 0, fz); scene.add(g);
 }
 
 // ── NPC Builders ──────────────────────────────────────────────────────────────
@@ -232,10 +249,10 @@ function makeLinus() {
 
 // ── NPCs ──────────────────────────────────────────────────────────────────────
 const npcDefs = [
-  { name:'Charlie Brown', dialogues:["Good grief! Hi Snoopy!\nWant to play baseball?","You're a good dog, Snoopy.","I can never get\nthe kite to fly...","Happiness is a warm puppy."], makeChar:makeCharlie, pos:[7,-5],  rot:-0.5 },
-  { name:'Woodstock',     dialogues:["Tweet tweet! 🐦\n(Hello, Snoopy!)","Chirp chirp! 🐦\n(Nice weather today!)","Tweet! 🐦\n(You're my best friend!)","...! 🐦\n(Found any bones?)"],       makeChar:makeWoodstock,pos:[-2,-8], rot:1.0  },
-  { name:'Lucy',          dialogues:["Don't trust Charlie Brown's\nbaseball skills.","The doctor is IN.\n5 cents, please!","I'm the most naturally\ngifted person I know.","You need help, Snoopy.\nFive cents."], makeChar:makeLucy, pos:[5,5], rot:-1.2 },
-  { name:'Linus',         dialogues:["My blanket is the\nsecret to happiness. ✨","I believe in the\nGreat Pumpkin, Snoopy!","Security is knowing\nyou're not alone.","Have you tried\nholding a blanket?"], makeChar:makeLinus, pos:[-8,3], rot:0.8 }
+  { name:'Charlie Brown', dialogues:["הצבע האהוב על סנופי הוא ירוק 💚","Good grief! Hi Snoopy!\nWant to play baseball?","You're a good dog, Snoopy.","Happiness is a warm puppy."], makeChar:makeCharlie, pos:[7,-5],  rot:-0.5 },
+  { name:'Woodstock',     dialogues:["אחד הזמרים האהובים על סנופי הוא אביתר בנאי 🎵","Tweet tweet! 🐦\n(Hello, Snoopy!)","Tweet! 🐦\n(You're my best friend!)","...! 🐦\n(Found any bones?)"],       makeChar:makeWoodstock,pos:[-2,-8], rot:1.0  },
+  { name:'Lucy',          dialogues:["סנופי היא הדבר הכי חכם בעולם 🧠","The doctor is IN.\n5 cents, please!","I'm the most naturally\ngifted person I know.","You need help, Snoopy.\nFive cents."], makeChar:makeLucy, pos:[5,5], rot:-1.2 },
+  { name:'Linus',         dialogues:["הצבע האהוב על סנופי הוא ירוק 💚","My blanket is the\nsecret to happiness. ✨","I believe in the\nGreat Pumpkin, Snoopy!","Security is knowing\nyou're not alone."], makeChar:makeLinus, pos:[-8,3], rot:0.8 }
 ];
 const npcs = npcDefs.map(def => {
   const mesh = def.makeChar();
@@ -274,7 +291,7 @@ function makeRock(x, z, scale=1) {
  [-55,38,1.3],[65,-35,1.1],[-70,20,0.8],[48,-65,1.4],[-35,-55,1.0],
  [78,40,0.7],[-80,-60,1.2],[10,-70,1.0],[92,-15,0.9],[-88,45,1.1],
  [35,88,1.3],[-25,-88,0.8],[72,68,1.0],[-65,-75,1.2],[15,92,0.9]
-].forEach(([x,z,s])=>makeRock(x,z,s));
+].filter(([x,z])=>!onRoad(x,z)).forEach(([x,z,s])=>makeRock(x,z,s));
 
 // ── Bushes ────────────────────────────────────────────────────────────────────
 function makeBush(x, z, scale=1) {
@@ -290,54 +307,9 @@ function makeBush(x, z, scale=1) {
 [[12,-15],[-18,20],[32,-8],[-28,35],[48,22],[-45,10],[22,45],[-38,-20],
  [15,25],[-12,-30],[40,50],[-55,-15],[68,25],[-62,42],[30,-42],[-22,65],
  [55,-55],[-48,68],[80,-48],[-75,35],[18,-62],[42,-75],[-35,80],[70,-80]
-].forEach(([x,z])=>makeBush(x,z,0.7+Math.random()*0.5));
+].filter(([x,z])=>!onRoad(x,z)).forEach(([x,z])=>makeBush(x,z,0.7+Math.random()*0.5));
 
-// ── Mountains ─────────────────────────────────────────────────────────────────
-function makeMountain(x, z, scale=1, color=0x6b7f6b) {
-  const g=new THREE.Group();
-  const mat=new THREE.MeshLambertMaterial({color});
-  const peak=new THREE.Mesh(new THREE.ConeGeometry(12*scale,22*scale,7),mat);
-  peak.position.y=0; g.add(peak);
-  const snow=new THREE.Mesh(new THREE.ConeGeometry(4.5*scale,8*scale,6),
-    new THREE.MeshLambertMaterial({color:0xf0f0f5}));
-  snow.position.y=9.5*scale; g.add(snow);
-  [[9,-2,0.75],[-7,-3,0.65]].forEach(([ox,oy,ss])=>{
-    const s=new THREE.Mesh(new THREE.ConeGeometry(10*scale*ss,16*scale*ss,6),mat);
-    s.position.set(ox*scale,oy,0); g.add(s);
-  });
-  g.position.set(x,0,z); scene.add(g);
-}
-// Close ring ~150 units out
-[[150, 150,1.4,0x5a6e5a],[130, 180,1.1,0x6b7f6b],[-150, 140,1.2,0x4a5e4a],
- [-180, 160,1.0,0x5a6e5a],[160,-140,1.3,0x6b7f6b],[-160,-150,1.1,0x4a5e4a],
- [140,-170,1.0,0x7a8f7a],[-130,-180,0.9,0x5a6e5a]
-].forEach(([x,z,s,c])=>makeMountain(x,z,s,c));
-// Far ring ~260 units out — taller, dominating the horizon
-[[260,  20,2.0,0x4a5e4a],[-260,  30,1.8,0x3d5040],[200, 200,2.2,0x5a6e5a],
- [-200, 220,1.9,0x4a5e4a],[220,-200,2.1,0x3d5040],[-220,-210,1.7,0x4a5e4a],
- [ 30, 270,1.8,0x5a6e5a],[ -40,-270,2.0,0x3d5040],[270,-80,1.9,0x4a5e4a],
- [-270, 80,1.7,0x5a6e5a],[180, 240,1.6,0x6b7f6b],[-180,-240,1.8,0x4a5e4a]
-].forEach(([x,z,s,c])=>makeMountain(x,z,s,c));
 
-// ── Ponds ─────────────────────────────────────────────────────────────────────
-function makePond(x, z, r=7) {
-  const pond=new THREE.Mesh(new THREE.CircleGeometry(r,24),
-    new THREE.MeshBasicMaterial({color:0x3399cc,transparent:true,opacity:0.78}));
-  pond.rotation.x=-Math.PI/2; pond.position.set(x,0.05,z); scene.add(pond);
-  for(let i=0;i<10;i++){
-    const a=(i/10)*Math.PI*2, rr=r*0.75+Math.random()*r*0.35;
-    const stem=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,0.7,4),
-      new THREE.MeshLambertMaterial({color:0x5a7a3a}));
-    stem.position.set(x+Math.cos(a)*rr,0.35,z+Math.sin(a)*rr); scene.add(stem);
-    const head=new THREE.Mesh(new THREE.CylinderGeometry(0.09,0.09,0.28,5),
-      new THREE.MeshLambertMaterial({color:0x7a4a1e}));
-    head.position.set(x+Math.cos(a)*rr,0.84,z+Math.sin(a)*rr); scene.add(head);
-  }
-  colliders.push({x,z,radius:r});
-}
-makePond(0,32,8);
-makePond(-50,50,6);
-makePond(62,30,5);
 
 // ── Fountain ──────────────────────────────────────────────────────────────────
 (function(){

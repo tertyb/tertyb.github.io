@@ -28,8 +28,8 @@ function animate() {
     playerPlane.position.x += Math.sin(playerPlane.rotation.y) * planeSpeed * dt;
     playerPlane.position.z += Math.cos(playerPlane.rotation.y) * planeSpeed * dt;
     playerPlane.position.y += planeVelY * dt;
-    playerPlane.position.x = Math.max(-142, Math.min(142, playerPlane.position.x));
-    playerPlane.position.z = Math.max(-142, Math.min(142, playerPlane.position.z));
+    playerPlane.position.x = Math.max(-275, Math.min(275, playerPlane.position.x));
+    playerPlane.position.z = Math.max(-275, Math.min(275, playerPlane.position.z));
     // Pitch visual
     playerPlane.rotation.x = -planeVelY * 0.03;
     // Land on ground
@@ -51,8 +51,8 @@ function animate() {
       car.rotation.y += steer;
       car.position.x += Math.sin(car.rotation.y) * carSpeed * dt;
       car.position.z += Math.cos(car.rotation.y) * carSpeed * dt;
-      car.position.x = Math.max(-145, Math.min(145, car.position.x));
-      car.position.z = Math.max(-145, Math.min(145, car.position.z));
+      car.position.x = Math.max(-280, Math.min(280, car.position.x));
+      car.position.z = Math.max(-280, Math.min(280, car.position.z));
     }
     car.userData.wheels.forEach(w => { w.rotation.x += carSpeed * dt * 1.6; });
   }
@@ -84,7 +84,7 @@ function animate() {
         const dx=nx-c.x, dz=nz-c.z;
         if (Math.sqrt(dx*dx+dz*dz) < c.radius+0.5) { blocked=true; break; }
       }
-      if (Math.abs(nx)>145||Math.abs(nz)>145) blocked=true;
+      if (Math.abs(nx)>280||Math.abs(nz)>280) blocked=true;
       if (!blocked) { player.position.x=nx; player.position.z=nz; }
       player.rotation.y = angle;
     }
@@ -247,6 +247,9 @@ function animate() {
   updatePort(dt);
   updateMilitary(dt);
   updatePlanes(dt);
+  updateGrandparents(dt);
+  updateCombat(dt);
+  updateSuperPharm(dt);
 
   renderer.render(scene, camera);
 }
