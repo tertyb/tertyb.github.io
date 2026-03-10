@@ -207,6 +207,9 @@ function animate() {
   updateCarAI(dt);
   updateJaja(dt);
   updateGDB(dt);
+  updateMcDonalds(dt);
+  updateBasketball(dt);
+  updateBIGAshdod(dt);
 
   renderer.render(scene, camera);
 }
