@@ -80,18 +80,22 @@ let basketballScore = 0;
     return hg;
   }
 
-  const hoopL = makeHoop(-1);
+  // hoopL — left end of court, arm faces +X (toward center)
+  const hoopL = makeHoop(1);
   hoopL.position.set(BBALL_X - 13, 0, BBALL_Z);
+  hoopL.rotation.y = Math.PI / 2;
   scene.add(hoopL);
 
+  // hoopR — right end of court, arm faces -X (toward center)
   const hoopR = makeHoop(1);
   hoopR.position.set(BBALL_X + 13, 0, BBALL_Z);
+  hoopR.rotation.y = -Math.PI / 2;
   scene.add(hoopR);
 
-  // Store hoop world positions for scoring check
+  // Store hoop world positions for scoring check (rim now offset in X, not Z)
   window._hoops = [
-    { x: BBALL_X-13, y: 3.95, z: BBALL_Z - 0.9 },
-    { x: BBALL_X+13, y: 3.95, z: BBALL_Z + 0.9 },
+    { x: BBALL_X - 12.1, y: 3.95, z: BBALL_Z },
+    { x: BBALL_X + 12.1, y: 3.95, z: BBALL_Z },
   ];
 
   // Bleachers (benches along sideline)

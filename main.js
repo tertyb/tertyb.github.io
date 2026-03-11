@@ -97,22 +97,51 @@ function animate() {
     }
   }
 
-  // Bone collection
-  boneMeshes.forEach(bone => {
-    if (bone.userData.collected) return;
-    bone.rotation.y += dt * 2.5;
-    bone.position.y = 0.35 + Math.sin(clock.getElapsedTime()*3 + bone.position.x)*0.06;
-    const dx=player.position.x-bone.position.x, dz=player.position.z-bone.position.z;
-    if (Math.sqrt(dx*dx+dz*dz) < 0.9) {
-      bone.userData.collected = true;
-      scene.remove(bone);
+  // Perfume collection
+  boneMeshes.forEach(perfume => {
+    if (perfume.userData.collected) return;
+    perfume.rotation.y += dt * 2.0;
+    perfume.position.y = 0.3 + Math.sin(clock.getElapsedTime()*2.5 + perfume.position.x)*0.08;
+    const dx=player.position.x-perfume.position.x, dz=player.position.z-perfume.position.z;
+    if (Math.sqrt(dx*dx+dz*dz) < 1.2) {
+      perfume.userData.collected = true;
+      scene.remove(perfume);
       score++;
+      showPerfumeMsg(perfume.userData.message);
       const scoreEl = document.getElementById('score');
-      scoreEl.textContent = score >= 10 ? '🦴 All bones found! 🎉' : `🦴 Bones: ${score} / 10`;
+      scoreEl.textContent = score >= 10 ? '🌸 כל הבשמים נמצאו! 💕' : `🌸 בשמים: ${score} / 10`;
       scoreEl.classList.add('pop');
       setTimeout(() => scoreEl.classList.remove('pop'), 150);
     }
   });
+
+  // Perfume guide compass
+  const nextPerfume = boneMeshes.find(p => !p.userData.collected);
+  const allDone = !nextPerfume;
+  const snoopyPos = window._snoopyRomePos;
+  const showCompass = nextPerfume || (allDone && snoopyPos && score >= 10);
+
+  if (showCompass) {
+    const curPos = inPlane ? playerPlane.position : (inCar ? car.position : player.position);
+    const targetPos = nextPerfume ? nextPerfume.position : snoopyPos;
+    const pdx = targetPos.x - curPos.x;
+    const pdz = targetPos.z - curPos.z;
+    const dist = Math.sqrt(pdx * pdx + pdz * pdz);
+    const worldAngle = Math.atan2(pdx, pdz);
+    const relAngle = worldAngle - camYaw - Math.PI;
+    const arrowEl  = document.getElementById('perfume-arrow');
+    const distEl   = document.getElementById('perfume-dist');
+    const labelEl  = document.getElementById('perfume-guide-label');
+    if (arrowEl) arrowEl.style.transform = `rotate(${relAngle}rad)`;
+    if (distEl) {
+      const distLabel = dist > 1000 ? (dist / 1000).toFixed(1) + ' ק"מ' : Math.round(dist) + ' מ׳';
+      distEl.textContent = distLabel;
+    }
+    if (labelEl) labelEl.textContent = allDone ? '🐾 מצא את סנופ!' : '🌸 הבושם הבא';
+    perfumeGuideEl.style.display = 'flex';
+  } else {
+    perfumeGuideEl.style.display = 'none';
+  }
 
   // Camera
   const camTarget = inPlane ? playerPlane : (inCar ? car : player);

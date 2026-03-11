@@ -22,13 +22,9 @@ const ROME_CX = 0, ROME_CZ = 1800;
     lz.rotation.x = -Math.PI/2; lz.position.set(ROME_CX, 0.005, ROME_CZ + i); scene.add(lz);
   }
 
-  // Sky ambient for Rome area — strong overhead lights so buildings are visible
-  const sunLight = new THREE.PointLight(0xfffbe8, 4.5, 700);
-  sunLight.position.set(ROME_CX, 90, ROME_CZ); scene.add(sunLight);
-  const fillLight = new THREE.PointLight(0xffd090, 3.0, 500);
-  fillLight.position.set(ROME_CX + 60, 50, ROME_CZ + 60); scene.add(fillLight);
-  const fillLight2 = new THREE.PointLight(0xffeedd, 2.5, 500);
-  fillLight2.position.set(ROME_CX - 60, 50, ROME_CZ - 60); scene.add(fillLight2);
+  // Subtle warm accent — global scene lights already illuminate Rome
+  const sunLight = new THREE.PointLight(0xffd090, 0.4, 500);
+  sunLight.position.set(ROME_CX, 80, ROME_CZ); scene.add(sunLight);
 })();
 
 // ── Landing Strip ─────────────────────────────────────────────────────────────
@@ -177,6 +173,125 @@ const ROME_RUNWAY_Z = ROME_CZ - 80;
     new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(colC), transparent: true }));
   colSign.position.set(CX, 14.5, CZ + R1 + 1); scene.add(colSign);
 })();
+
+// ── Snoopy — inside the Colosseum ─────────────────────────────────────────────
+const GEORGE_X = ROME_CX - 55, GEORGE_Z = ROME_CZ + 10;
+window._snoopyRomePos = { x: GEORGE_X, z: GEORGE_Z };
+(function buildGeorge() {
+  const g = new THREE.Group();
+  const furM  = new THREE.MeshLambertMaterial({ color: 0xffffff }); // Snoopy white
+  const darkM = new THREE.MeshLambertMaterial({ color: 0x111111 }); // black ears
+  const noseM = new THREE.MeshLambertMaterial({ color: 0x1a0800 });
+  const eyeM  = new THREE.MeshBasicMaterial({ color: 0x111111 });
+
+  // Body
+  const body = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.45, 0.85), furM);
+  body.position.y = 0.42; g.add(body);
+  // Head
+  const head = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.42, 0.42), furM);
+  head.position.set(0, 0.72, 0.42); g.add(head);
+  // Snout
+  const snout = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.18, 0.22), furM);
+  snout.position.set(0, 0.66, 0.62); g.add(snout);
+  // Nose
+  const nose = new THREE.Mesh(new THREE.SphereGeometry(0.065, 6, 4), noseM);
+  nose.position.set(0, 0.73, 0.73); g.add(nose);
+  // Eyes
+  [-0.13, 0.13].forEach(ex => {
+    const eye = new THREE.Mesh(new THREE.SphereGeometry(0.05, 6, 4), eyeM);
+    eye.position.set(ex, 0.8, 0.62); g.add(eye);
+  });
+  // Floppy ears
+  [-0.26, 0.26].forEach(ex => {
+    const ear = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.24, 0.08), darkM);
+    ear.position.set(ex, 0.62, 0.36); g.add(ear);
+  });
+  // Tail (wagging)
+  const tail = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.02, 0.38, 6), furM);
+  tail.rotation.z = Math.PI / 4;
+  tail.position.set(0, 0.7, -0.46);
+  g.add(tail);
+  g.userData.tail = tail;
+  // Legs
+  [[-0.2, 0, 0.28],[0.2, 0, 0.28],[-0.2, 0, -0.22],[0.2, 0, -0.22]].forEach(([lx,,lz]) => {
+    const leg = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.38, 0.14), furM);
+    leg.position.set(lx, 0.19, lz); g.add(leg);
+  });
+
+  g.position.set(GEORGE_X, 0, GEORGE_Z);
+  scene.add(g);
+  window._georgeMesh = g;
+
+  const hintEl = document.createElement('div');
+  hintEl.className = 'bubble-hint'; hintEl.style.display = 'none';
+  hintEl.textContent = '[E] Talk';
+  document.getElementById('bubble-container').appendChild(hintEl);
+
+  const bubbleEl = document.createElement('div');
+  bubbleEl.className = 'speech-bubble'; bubbleEl.style.display = 'none';
+  document.getElementById('bubble-container').appendChild(bubbleEl);
+
+  npcs.push({
+    mesh: g, name: 'סנופ',
+    homePos: { x: GEORGE_X, z: GEORGE_Z },
+    walkTarget: null, walkWait: 99, talkVisible: false, dialogueIdx: 0,
+    dialogues: [
+      '🐾 זה אני סנופ,<br>אני אוהב אותך הכי בעולם 💕',
+    ],
+    hintEl,
+    bubbleEl,
+  });
+})();
+
+// ── Fireworks system ──────────────────────────────────────────────────────────
+const fireworks = [];
+let fireworksActive = false;
+let fireworksTimer = 0;
+let fireworksSpawnTimer = 0;
+
+function spawnFirework() {
+  const colors = [0xff2244, 0xffcc00, 0x44eeff, 0xff88ff, 0x88ff44, 0xff6600, 0xffffff, 0xff99ff, 0x00ffcc];
+  // Spawn 3 simultaneous bursts per call for a dense show
+  for (let b = 0; b < 3; b++) {
+    const fx = GEORGE_X + (Math.random() - 0.5) * 90;
+    const fz = GEORGE_Z + (Math.random() - 0.5) * 90;
+    const fy = 40 + Math.random() * 35;
+    const color = colors[Math.floor(Math.random() * colors.length)];
+    const mat = new THREE.MeshBasicMaterial({ color });
+    const particles = [];
+    const numP = 40 + Math.floor(Math.random() * 20);
+    const pSize = 0.28 + Math.random() * 0.2;
+    for (let i = 0; i < numP; i++) {
+      const p = new THREE.Mesh(new THREE.SphereGeometry(pSize, 4, 3), mat);
+      p.position.set(fx, fy, fz);
+      const θ = Math.random() * Math.PI * 2;
+      const φ = Math.random() * Math.PI;
+      const spd = 7 + Math.random() * 14;
+      p.userData.vel = new THREE.Vector3(
+        Math.sin(φ) * Math.cos(θ) * spd,
+        Math.cos(φ) * spd * 0.7,
+        Math.sin(φ) * Math.sin(θ) * spd
+      );
+      scene.add(p);
+      particles.push(p);
+    }
+    fireworks.push({ particles, life: 2.2 });
+  }
+}
+
+// E near Snoopy — fireworks always; game complete when all perfumes collected
+window.addEventListener('keydown', e => {
+  if (e.code !== 'KeyE') return;
+  const dx = player.position.x - GEORGE_X, dz = player.position.z - GEORGE_Z;
+  if (Math.sqrt(dx*dx + dz*dz) < 5) {
+    fireworksActive = true;
+    fireworksTimer = 30.0;
+    fireworksSpawnTimer = 0;
+    if (score >= 10) {
+      setTimeout(() => window._showGameComplete && window._showGameComplete(), 2800);
+    }
+  }
+});
 
 // ── Pantheon ──────────────────────────────────────────────────────────────────
 (function buildPantheon() {
@@ -385,29 +500,20 @@ const ROME_RUNWAY_Z = ROME_CZ - 80;
 
   // NPC registration (uses existing NPC system)
   const hintEl = document.createElement('div');
-  hintEl.style.cssText = [
-    'position:fixed','background:rgba(0,0,0,0.75)','color:#fff','font-size:14px',
-    'font-weight:bold','padding:5px 14px','border-radius:10px','pointer-events:none',
-    'z-index:20','display:none','font-family:Arial,sans-serif',
-  ].join(';');
+  hintEl.className = 'bubble-hint'; hintEl.style.display = 'none';
   hintEl.textContent = '[E] Talk';
-  document.body.appendChild(hintEl);
+  document.getElementById('bubble-container').appendChild(hintEl);
 
   const bubbleEl = document.createElement('div');
-  bubbleEl.style.cssText = [
-    'position:fixed','background:#fff8e1','color:#3a2800','font-size:14px',
-    'padding:10px 16px','border-radius:14px','pointer-events:none','z-index:30',
-    'display:none','font-family:Georgia,serif','max-width:320px','line-height:1.6',
-    'border:2px solid #c8a000','text-align:center','direction:rtl',
-  ].join(';');
-  document.body.appendChild(bubbleEl);
+  bubbleEl.className = 'speech-bubble'; bubbleEl.style.display = 'none';
+  document.getElementById('bubble-container').appendChild(bubbleEl);
 
   const dialogues = [
-    '🏛 Benvenuto a Roma!<br>ברוך הבא לעיר הנצחית!<br><br><i>Seven hills, one great city.</i>',
-    '⚔️ האימפריה הרומאית שלטה\nבכל העולם הידוע...\nואתה הגעת לכאן במטוס! 🛩️',
-    '🏟 הקולוסיאום מולך נבנה\nבשנת 70 לספירה.\nשיא הנדסה עתיקה!',
-    '🍕 Pizza, pasta, gelato...\nבישול רומאי מפורסם בכל העולם!\nסנופי יוכל לטעום הכל 🐾',
-    '💛 כמה נחמד שבאת לבקר!\nRoma ti aspetta sempre —\nרומא תמיד מחכה לך!',
+    '🏛 סנופי היפה הגיע לרומא!<br>מחכה לך משהו נחמד<br>בתוך הקולוסאום... 🏟',
+    '⚔️ האימפריה הרומאית שלטה<br>בכל העולם הידוע...<br>ואתה הגעת לכאן במטוס! 🛩️',
+    '🐕 כנס לקולוסאום —<br>מישהו מאוד מיוחד מחכה לך שם!',
+    '🍕 Pizza, pasta, gelato...<br>ולטירמיסו של פומפי — אל תפספס! 🐾',
+    '💛 Roma ti aspetta sempre —<br>רומא תמיד מחכה לך!',
   ];
   let dIdx = 0;
   let talkVisible = false;
@@ -494,6 +600,26 @@ const ROME_RUNWAY_Z = ROME_CZ - 80;
   const lobbyLight = new THREE.PointLight(0xfff3cc, 1.5, 18);
   lobbyLight.position.set(HX, 4, HZ - 4); scene.add(lobbyLight);
 
+  // ── Outdoor sign post ──
+  [-1.4, 1.4].forEach(ox => {
+    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 4.5, 8),
+      new THREE.MeshLambertMaterial({ color: 0x8b1a1a }));
+    post.position.set(HX + ox, 2.25, HZ - 10); scene.add(post);
+  });
+  const outdoorBoard = new THREE.Mesh(new THREE.BoxGeometry(4.5, 1.8, 0.18),
+    new THREE.MeshLambertMaterial({ color: 0x8b1a1a }));
+  outdoorBoard.position.set(HX, 3.7, HZ - 10); scene.add(outdoorBoard);
+  const hOC = document.createElement('canvas'); hOC.width = 512; hOC.height = 128;
+  const hOctx = hOC.getContext('2d');
+  hOctx.fillStyle = '#8b1a1a'; hOctx.fillRect(0, 0, 512, 128);
+  hOctx.strokeStyle = '#ffd700'; hOctx.lineWidth = 6; hOctx.strokeRect(4, 4, 504, 120);
+  hOctx.fillStyle = '#ffd700'; hOctx.font = 'bold 54px Georgia,serif'; hOctx.textAlign = 'center';
+  hOctx.fillText('HOTEL-87', 256, 76);
+  hOctx.fillStyle = '#ffeeaa'; hOctx.font = '22px Arial'; hOctx.fillText('★ Roma ★', 256, 110);
+  const hOSign = new THREE.Mesh(new THREE.PlaneGeometry(4.3, 1.6),
+    new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(hOC), transparent: true, side: THREE.DoubleSide }));
+  hOSign.position.set(HX, 3.7, HZ - 9.91); scene.add(hOSign);
+
   colliders.push({ x: HX, z: HZ, radius: 10 });
   colliders.push({ x: HX - 14, z: HZ, radius: 6 });
 })();
@@ -543,6 +669,27 @@ const PIZZA_X = ROME_CX - 28, PIZZA_Z = ROME_CZ + 55;
   const ovenLight = new THREE.PointLight(0xff8800, 1.2, 14);
   ovenLight.position.set(PIZZA_X, 3, PIZZA_Z + 2); scene.add(ovenLight);
 
+  // ── Outdoor sign post ──
+  [-1.6, 1.6].forEach(ox => {
+    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 4, 8),
+      new THREE.MeshLambertMaterial({ color: 0x228822 }));
+    post.position.set(PIZZA_X + ox, 2, PIZZA_Z - 7.5); scene.add(post);
+  });
+  const pOBoard = new THREE.Mesh(new THREE.BoxGeometry(5, 1.8, 0.18),
+    new THREE.MeshLambertMaterial({ color: 0xcc3300 }));
+  pOBoard.position.set(PIZZA_X, 3.6, PIZZA_Z - 7.5); scene.add(pOBoard);
+  const pOC = document.createElement('canvas'); pOC.width = 512; pOC.height = 128;
+  const pOctx = pOC.getContext('2d');
+  const pGrad = pOctx.createLinearGradient(0,0,512,0);
+  pGrad.addColorStop(0,'#cc3300'); pGrad.addColorStop(0.5,'#fff'); pGrad.addColorStop(1,'#228822');
+  pOctx.fillStyle = pGrad; pOctx.fillRect(0,0,512,128);
+  pOctx.fillStyle = '#1a1a1a'; pOctx.font = 'bold 50px Georgia,serif'; pOctx.textAlign = 'center';
+  pOctx.fillText('🍕 BONA PIZZA', 256, 72);
+  pOctx.font = '22px Arial'; pOctx.fillText('Pizza con Burrata', 256, 108);
+  const pOSign = new THREE.Mesh(new THREE.PlaneGeometry(4.8, 1.6),
+    new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(pOC), transparent: true, side: THREE.DoubleSide }));
+  pOSign.position.set(PIZZA_X, 3.6, PIZZA_Z - 7.41); scene.add(pOSign);
+
   colliders.push({ x: PIZZA_X, z: PIZZA_Z, radius: 7 });
 })();
 
@@ -587,8 +734,8 @@ const PIZZA_X = ROME_CX - 28, PIZZA_Z = ROME_CZ + 55;
       '🧀 הפיצה שלנו עם <b>בורטה טרייה</b><br>מגיעה מהחווה הטובה ביותר...<br>רק בשבילך סנופי! 🐾',
       '🍕 Ecco la tua pizza!<br>פיצה עם בורטה — הכי טעים בעולם!',
     ],
-    hintEl: (() => { const el = document.createElement('div'); el.style.cssText='position:fixed;background:rgba(0,0,0,0.75);color:#fff;font-size:14px;font-weight:bold;padding:5px 14px;border-radius:10px;pointer-events:none;z-index:20;display:none;font-family:Arial,sans-serif'; el.textContent='[E] Talk'; document.body.appendChild(el); return el; })(),
-    bubbleEl: (() => { const el = document.createElement('div'); el.style.cssText='position:fixed;background:#fffde7;color:#3a1a00;font-size:15px;padding:12px 18px;border-radius:14px;pointer-events:none;z-index:30;display:none;font-family:Georgia,serif;max-width:300px;line-height:1.6;border:2px solid #cc3300;text-align:center;direction:rtl'; document.body.appendChild(el); return el; })(),
+    hintEl: (() => { const el = document.createElement('div'); el.className='bubble-hint'; el.style.display='none'; el.textContent='[E] Talk'; document.getElementById('bubble-container').appendChild(el); return el; })(),
+    bubbleEl: (() => { const el = document.createElement('div'); el.className='speech-bubble'; el.style.display='none'; document.getElementById('bubble-container').appendChild(el); return el; })(),
   });
 })();
 
@@ -605,11 +752,16 @@ pizzaGiftEl.innerHTML = '🍕<br><br><b>Bona Pizza!</b><br>פיצה עם בור�
 document.body.appendChild(pizzaGiftEl);
 let pizzaGiftTimer = 0;
 
+const pizzaHintEl = document.createElement('div');
+pizzaHintEl.style.cssText = 'position:fixed;bottom:110px;left:50%;transform:translateX(-50%);background:rgba(180,30,0,0.9);color:#fff;font-size:15px;font-weight:bold;padding:6px 18px;border-radius:12px;pointer-events:none;z-index:25;display:none;font-family:Arial,sans-serif;border:1px solid #ffcc00';
+pizzaHintEl.textContent = '[E] 🍕 קבל פיצה עם בורטה!';
+document.body.appendChild(pizzaHintEl);
+
 window.addEventListener('keydown', e => {
   if (e.code !== 'KeyE') return;
-  const dx = player.position.x - (PIZZA_X + 1);
-  const dz = player.position.z - (PIZZA_Z - 4.5);
-  if (Math.sqrt(dx*dx + dz*dz) < 4.5) {
+  const dx = player.position.x - PIZZA_X;
+  const dz = player.position.z - PIZZA_Z;
+  if (Math.sqrt(dx*dx + dz*dz) < 9) {
     pizzaGiftEl.style.display = 'block';
     pizzaGiftTimer = 5.0;
   }
@@ -621,43 +773,76 @@ const POMPI_X = ROME_CX + 32, POMPI_Z = ROME_CZ + 55;
   const wallM  = new THREE.MeshLambertMaterial({ color: 0xfff8f0 }); // cream
   const roofM  = new THREE.MeshLambertMaterial({ color: 0x5c3d1e }); // coffee brown
   const trimM  = new THREE.MeshLambertMaterial({ color: 0xd4a855 }); // gold trim
-  const glassM = new THREE.MeshBasicMaterial({ color: 0xffe8cc, transparent: true, opacity: 0.65 });
+  const glassM = new THREE.MeshBasicMaterial({ color: 0xffe8cc, transparent: true, opacity: 0.65, side: THREE.DoubleSide });
+
+  // Whole building is in a group — rotation.y = Math.PI flips it 180°
+  const pompiGroup = new THREE.Group();
+  pompiGroup.position.set(POMPI_X, 0, POMPI_Z);
+  pompiGroup.rotation.y = Math.PI;
+  scene.add(pompiGroup);
 
   const body = new THREE.Mesh(new THREE.BoxGeometry(12, 7, 9), wallM);
-  body.position.set(POMPI_X, 3.5, POMPI_Z); scene.add(body);
+  body.position.set(0, 3.5, 0); pompiGroup.add(body);
 
   // Gold trim band
   const trim = new THREE.Mesh(new THREE.BoxGeometry(12.2, 0.7, 9.2), trimM);
-  trim.position.set(POMPI_X, 6.1, POMPI_Z); scene.add(trim);
+  trim.position.set(0, 6.1, 0); pompiGroup.add(trim);
 
   // Coffee-brown roof
   const roof = new THREE.Mesh(new THREE.BoxGeometry(12.5, 0.5, 9.5), roofM);
-  roof.position.set(POMPI_X, 7.25, POMPI_Z); scene.add(roof);
+  roof.position.set(0, 7.25, 0); pompiGroup.add(roof);
 
-  // Display window
+  // Display window (local -Z face = world +Z after group flip)
   const dispWin = new THREE.Mesh(new THREE.PlaneGeometry(5, 2.5), glassM);
-  dispWin.position.set(POMPI_X, 3.2, POMPI_Z - 4.6); scene.add(dispWin);
+  dispWin.position.set(0, 3.2, -4.6); pompiGroup.add(dispWin);
   // Door
   const door = new THREE.Mesh(new THREE.BoxGeometry(2, 3.2, 0.3),
     new THREE.MeshLambertMaterial({ color: 0x3e1a00 }));
-  door.position.set(POMPI_X + 3.2, 1.6, POMPI_Z - 4.6); scene.add(door);
+  door.position.set(3.2, 1.6, -4.6); pompiGroup.add(door);
 
-  // "POMPI" sign
+  // "POMPI" wall sign — canvas pre-flip to counteract group X-axis mirror
   const tC = document.createElement('canvas'); tC.width = 512; tC.height = 128;
   const tctx = tC.getContext('2d');
+  tctx.save(); tctx.translate(512, 0); tctx.scale(-1, 1);
   tctx.fillStyle = '#5c3d1e'; tctx.fillRect(0, 0, 512, 128);
   tctx.strokeStyle = '#d4a855'; tctx.lineWidth = 6; tctx.strokeRect(5, 5, 502, 118);
   tctx.fillStyle = '#ffd700'; tctx.font = 'bold 52px Georgia,serif'; tctx.textAlign = 'center';
   tctx.fillText('☕ POMPI', 256, 58);
   tctx.fillStyle = '#f5deb3'; tctx.font = '26px Georgia,serif';
   tctx.fillText('Tiramisù Autentico', 256, 100);
+  tctx.restore();
   const tSign = new THREE.Mesh(new THREE.PlaneGeometry(9, 2.3),
-    new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(tC), transparent: true }));
-  tSign.position.set(POMPI_X, 8.2, POMPI_Z - 4.4); scene.add(tSign);
+    new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(tC), transparent: true, side: THREE.DoubleSide }));
+  tSign.position.set(0, 8.2, -4.4); pompiGroup.add(tSign);
 
   // Cozy warm light
   const warmLight = new THREE.PointLight(0xff9933, 1.3, 14);
-  warmLight.position.set(POMPI_X, 3.5, POMPI_Z); scene.add(warmLight);
+  warmLight.position.set(0, 3.5, 0); pompiGroup.add(warmLight);
+
+  // ── Outdoor sign post — local +Z = world south (toward approaching players) ──
+  [-1.4, 1.4].forEach(ox => {
+    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 4, 8),
+      new THREE.MeshLambertMaterial({ color: 0x5c3d1e }));
+    post.position.set(ox, 2, 7); pompiGroup.add(post);
+  });
+  const tOBoard = new THREE.Mesh(new THREE.BoxGeometry(4.5, 1.8, 0.18),
+    new THREE.MeshLambertMaterial({ color: 0x5c3d1e }));
+  tOBoard.position.set(0, 3.6, 7); pompiGroup.add(tOBoard);
+  const tOC = document.createElement('canvas'); tOC.width = 512; tOC.height = 128;
+  const tOctx = tOC.getContext('2d');
+  // Canvas pre-flip: group's X-mirror + this pre-flip = readable text
+  tOctx.save(); tOctx.translate(512, 0); tOctx.scale(-1, 1);
+  tOctx.fillStyle = '#5c3d1e'; tOctx.fillRect(0, 0, 512, 128);
+  tOctx.strokeStyle = '#d4a855'; tOctx.lineWidth = 5; tOctx.strokeRect(4, 4, 504, 120);
+  tOctx.fillStyle = '#ffd700'; tOctx.font = 'bold 54px Georgia,serif'; tOctx.textAlign = 'center';
+  tOctx.fillText('☕ POMPI', 256, 70);
+  tOctx.fillStyle = '#f5deb3'; tOctx.font = '24px Georgia,serif';
+  tOctx.fillText('Tiramisù Autentico', 256, 106);
+  tOctx.restore();
+  const tOSign = new THREE.Mesh(new THREE.PlaneGeometry(4.3, 1.6),
+    new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(tOC), transparent: true, side: THREE.DoubleSide }));
+  // rotation.y = 0: faces +Z local → -Z world after group flip → faces south toward players
+  tOSign.position.set(0, 3.6, 6.91); pompiGroup.add(tOSign);
 
   colliders.push({ x: POMPI_X, z: POMPI_Z, radius: 6.5 });
 })();
@@ -687,20 +872,20 @@ const POMPI_X = ROME_CX + 32, POMPI_Z = ROME_CZ + 55;
     leg.position.set(0, 0.44, lz); g.add(leg);
   });
 
-  g.position.set(POMPI_X - 1, 0, POMPI_Z - 4.2);
+  g.position.set(POMPI_X - 1, 0, POMPI_Z + 4.2);
   scene.add(g);
 
   npcs.push({
     mesh: g, name: 'בריסטה פומפו',
-    homePos: { x: POMPI_X - 1, z: POMPI_Z - 4.2 },
+    homePos: { x: POMPI_X - 1, z: POMPI_Z + 4.2 },
     walkTarget: null, walkWait: 2, talkVisible: false, dialogueIdx: 0,
     dialogues: [
       '☕ Benvenuto a Pompi!<br>הטירמיסו שלנו — המתכון המקורי<br>מ-1969 מ-Treviso!',
       '😊 סנופי, עשיתי בשבילך<br>טירמיסו עם <b>מסקרפונה</b> אמיתי<br>וביסקוויטי ספוגיארדי... 🐾',
       '☕ Tiramisù di Pompi —<br>il dolce più buono del mondo!<br>הכי מתוק בעולם!',
     ],
-    hintEl: (() => { const el = document.createElement('div'); el.style.cssText='position:fixed;background:rgba(0,0,0,0.75);color:#fff;font-size:14px;font-weight:bold;padding:5px 14px;border-radius:10px;pointer-events:none;z-index:20;display:none;font-family:Arial,sans-serif'; el.textContent='[E] Talk'; document.body.appendChild(el); return el; })(),
-    bubbleEl: (() => { const el = document.createElement('div'); el.style.cssText='position:fixed;background:#fff8f0;color:#3e1a00;font-size:15px;padding:12px 18px;border-radius:14px;pointer-events:none;z-index:30;display:none;font-family:Georgia,serif;max-width:300px;line-height:1.6;border:2px solid #d4a855;text-align:center;direction:rtl'; document.body.appendChild(el); return el; })(),
+    hintEl: (() => { const el = document.createElement('div'); el.className='bubble-hint'; el.style.display='none'; el.textContent='[E] Talk'; document.getElementById('bubble-container').appendChild(el); return el; })(),
+    bubbleEl: (() => { const el = document.createElement('div'); el.className='speech-bubble'; el.style.display='none'; document.getElementById('bubble-container').appendChild(el); return el; })(),
   });
 })();
 
@@ -717,11 +902,16 @@ tiramisuGiftEl.innerHTML = '☕🍰<br><br><b>Tiramisù di Pompi!</b><br>טיר�
 document.body.appendChild(tiramisuGiftEl);
 let tiramisuGiftTimer = 0;
 
+const tiramisuHintEl = document.createElement('div');
+tiramisuHintEl.style.cssText = 'position:fixed;bottom:110px;left:50%;transform:translateX(-50%);background:rgba(60,26,0,0.9);color:#ffd700;font-size:15px;font-weight:bold;padding:6px 18px;border-radius:12px;pointer-events:none;z-index:25;display:none;font-family:Arial,sans-serif;border:1px solid #d4a855';
+tiramisuHintEl.textContent = '[E] ☕ קבל טירמיסו!';
+document.body.appendChild(tiramisuHintEl);
+
 window.addEventListener('keydown', e => {
   if (e.code !== 'KeyE') return;
-  const dx = player.position.x - (POMPI_X - 1);
-  const dz = player.position.z - (POMPI_Z - 4.2);
-  if (Math.sqrt(dx*dx + dz*dz) < 4.5) {
+  const dx = player.position.x - POMPI_X;
+  const dz = player.position.z - POMPI_Z;
+  if (Math.sqrt(dx*dx + dz*dz) < 9) {
     tiramisuGiftEl.style.display = 'block';
     tiramisuGiftTimer = 5.0;
   }
@@ -743,6 +933,37 @@ let romeArrivalTimer = 0;
 let romeArrivalShown = false;
 
 function updateRome(dt) {
+  // George tail wag
+  if (window._georgeMesh) {
+    const tail = window._georgeMesh.userData.tail;
+    if (tail) tail.rotation.z = Math.PI / 4 + Math.sin(Date.now() * 0.008) * 0.5;
+  }
+
+  // Fireworks
+  if (fireworksActive) {
+    fireworksTimer -= dt;
+    fireworksSpawnTimer -= dt;
+    if (fireworksSpawnTimer <= 0) {
+      spawnFirework();
+      fireworksSpawnTimer = 0.12 + Math.random() * 0.1;
+    }
+    if (fireworksTimer <= 0) fireworksActive = false;
+  }
+  for (let i = fireworks.length - 1; i >= 0; i--) {
+    const fw = fireworks[i];
+    fw.life -= dt;
+    const fade = Math.max(0, fw.life / 1.6);
+    fw.particles.forEach(p => {
+      p.userData.vel.y -= 6 * dt; // gravity
+      p.position.addScaledVector(p.userData.vel, dt);
+      p.scale.setScalar(fade);
+    });
+    if (fw.life <= 0) {
+      fw.particles.forEach(p => scene.remove(p));
+      fireworks.splice(i, 1);
+    }
+  }
+
   // Show arrival message when plane first lands near Rome
   if (!romeArrivalShown && inPlane) {
     const dx = playerPlane.position.x - ROME_CX;
@@ -765,6 +986,17 @@ function updateRome(dt) {
     tiramisuGiftTimer -= dt;
     if (tiramisuGiftTimer <= 0) tiramisuGiftEl.style.display = 'none';
   }
+
+  // Food hints
+  if (!inPlane && !inCar) {
+    const pdx = player.position.x - PIZZA_X, pdz = player.position.z - PIZZA_Z;
+    pizzaHintEl.style.display = (Math.sqrt(pdx*pdx+pdz*pdz) < 9 && pizzaGiftTimer <= 0) ? 'block' : 'none';
+    const tdx = player.position.x - POMPI_X, tdz = player.position.z - POMPI_Z;
+    tiramisuHintEl.style.display = (Math.sqrt(tdx*tdx+tdz*tdz) < 9 && tiramisuGiftTimer <= 0) ? 'block' : 'none';
+  } else {
+    pizzaHintEl.style.display = 'none';
+    tiramisuHintEl.style.display = 'none';
+  }
 }
 
 // ── R key — respawn to town when in Rome ──────────────────────────────────────
@@ -779,21 +1011,81 @@ romeRespawnEl.textContent = '[R] חזור לעיר הבית';
 document.body.appendChild(romeRespawnEl);
 
 function isInRome() {
-  return player.position.z > ROME_CZ - 120;
+  return player.position.z > ROME_CZ - 120 ||
+         (inPlane && playerPlane.position.z > ROME_CZ - 200);
 }
+
+// ── Day / Night transition ────────────────────────────────────────────────────
+const _daySky      = new THREE.Color(0xf0a060);
+const _nightSky    = new THREE.Color(0x04040f);
+const _dayAmb      = new THREE.Color(0xff9944);
+const _nightAmb    = new THREE.Color(0x10103a);
+const _dayHemiSky  = new THREE.Color(0xffb060);
+const _nightHemiSky= new THREE.Color(0x08082a);
+const _dayHemiGnd  = new THREE.Color(0x8b5c20);
+const _nightHemiGnd= new THREE.Color(0x030308);
+const _daySun      = new THREE.Color(0xff8833);
+const _nightSun    = new THREE.Color(0x3344bb); // moonlight blue
+let _nightFactor   = 0;
+const _tmpCol = new THREE.Color();
 
 // Show hint when in Rome (on foot)
 const _origUpdateRome = updateRome;
 updateRome = function(dt) {
   _origUpdateRome(dt);
   romeRespawnEl.style.display = (!inPlane && !inCar && isInRome()) ? 'block' : 'none';
+
+  // Smoothly transition to night when in Rome, back to day when not
+  const targetNight = isInRome() ? 1 : 0;
+  _nightFactor += (targetNight - _nightFactor) * Math.min(1, dt * 1.2);
+  const n = _nightFactor;
+
+  _tmpCol.copy(_daySky).lerp(_nightSky, n);
+  renderer.setClearColor(_tmpCol);
+  scene.fog.color.copy(_tmpCol);
+
+  ambientLight.color.copy(_dayAmb).lerp(_nightAmb, n);
+  ambientLight.intensity = 0.7 * (1 - n) + 0.25 * n;
+
+  hemiLight.color.copy(_dayHemiSky).lerp(_nightHemiSky, n);
+  hemiLight.groundColor.copy(_dayHemiGnd).lerp(_nightHemiGnd, n);
+  hemiLight.intensity = 0.6 * (1 - n) + 0.15 * n;
+
+  sun.color.copy(_daySun).lerp(_nightSun, n);
+  sun.intensity = 1.6 * (1 - n) + 0.4 * n;
 };
 
 window.addEventListener('keydown', e => {
   if (e.code !== 'KeyR') return;
   if (inPlane || inCar) return;
   if (!isInRome()) return;
-  // Teleport back to main town spawn
   player.position.set(0, 0, 0);
   player.visible = true;
+});
+
+// ── Teleport to Rome button ────────────────────────────────────────────────────
+const teleportRomeBtn = document.createElement('button');
+teleportRomeBtn.textContent = '✈️ טוס לרומא';
+teleportRomeBtn.style.cssText = [
+  'position:fixed','bottom:20px','right:20px',
+  'background:rgba(139,26,26,0.92)','color:#ffd700','font-size:15px','font-weight:bold',
+  'padding:10px 22px','border-radius:14px','border:2px solid #ffd700',
+  'cursor:pointer','z-index:30','font-family:Arial,sans-serif',
+  'box-shadow:0 3px 12px rgba(0,0,0,0.5)',
+].join(';');
+document.body.appendChild(teleportRomeBtn);
+
+teleportRomeBtn.addEventListener('click', () => {
+  if (inPlane) {
+    // Teleport plane directly to Rome runway
+    playerPlane.position.set(ROME_CX, 0.56, ROME_RUNWAY_Z);
+    playerPlane.rotation.y = 0;
+    planeSpeed = 0; planeVelY = 0;
+  } else {
+    // Board the plane at the runway and fly there
+    playerPlane.position.set(ROME_CX, 0.56, ROME_RUNWAY_Z);
+    playerPlane.rotation.y = 0;
+    player.position.set(ROME_CX + 3, 0, ROME_RUNWAY_Z);
+    player.visible = true;
+  }
 });

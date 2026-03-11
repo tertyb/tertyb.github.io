@@ -455,21 +455,75 @@ npcs.forEach(npc => {
   hint.textContent='[E] Talk'; bubbleContainer.appendChild(hint); npc.hintEl=hint;
 });
 
-// ── Bones (collectibles) ──────────────────────────────────────────────────────
-const bonePositions = [[15,8],[-20,-12],[35,25],[-30,-28],[18,-40],[45,-15],[-25,38],[28,-22],[-42,18],[10,35]];
+// ── Perfumes (collectibles) ────────────────────────────────────────────────────
+// Each entry: [x, z, message]
+const perfumeData = [
+  [12,   -28,  'אני אוהב שאתה מצחיקה ויפה'],          // GDB
+  [148,    2,  'אני אוהב לקום איתך בבוקר'],            // Superpharm
+  [2,   -243,  'אני אוהב לראות איתך סרטים'],           // חצי חינם parking
+  [5,   1805,  'אני אוהב שאת בן אדם טוב'],             // Rome
+  [148,   64,  'אני אוהב את הריח שלך'],                // Jewelry store
+  [-53,   77,  'אני אוהב את החיבוק שלך'],              // Grandpa & Grandma
+  [30,  -106,  'אני אוהב להכין איתך אוכל'],            // Alegra & Leon
+  [2,    114,  'אני אוהב לשתות איתך יין'],             // Military base
+  [50,    22,  'אני אוהב את הצחוק היפה שלך'],          // Basketball court
+  [-10,  -88,  'אני אוהב איך שאת גורמת לי להרגיש'],   // Big Ashdod
+];
+
 const boneMeshes = [];
 let score = 0;
-const boneMat = new THREE.MeshLambertMaterial({ color: 0xf5f5dc });
-bonePositions.forEach(([x,z]) => {
+
+// Perfume love-message popup
+const perfumeMsgEl = document.createElement('div');
+perfumeMsgEl.style.cssText = [
+  'position:fixed','top:28%','left:50%','transform:translate(-50%,-50%)',
+  'font-size:26px','font-weight:bold','color:#fff',
+  'background:linear-gradient(135deg,#c471ed,#f64f59)',
+  'padding:14px 30px','border-radius:20px',
+  'box-shadow:0 4px 24px rgba(196,113,237,0.5)',
+  'pointer-events:none','z-index:120','display:none',
+  'text-align:center','font-family:Arial,sans-serif',
+  'border:2px solid #fff',
+].join(';');
+document.body.appendChild(perfumeMsgEl);
+
+function showPerfumeMsg(msg) {
+  perfumeMsgEl.textContent = '🌸 ' + msg;
+  perfumeMsgEl.style.display = 'block';
+  setTimeout(() => { perfumeMsgEl.style.display = 'none'; }, 3500);
+}
+
+// Build perfume bottle meshes
+const bottleMat  = new THREE.MeshLambertMaterial({ color: 0xe8c4e8 }); // soft purple
+const capMat     = new THREE.MeshLambertMaterial({ color: 0xd4a017 }); // gold cap
+const liquidMat  = new THREE.MeshBasicMaterial({ color: 0xf5a0d0, transparent: true, opacity: 0.7 });
+
+perfumeData.forEach(([x, z, msg]) => {
   const g = new THREE.Group();
-  const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.055,0.055,0.38,6), boneMat);
-  shaft.rotation.z = Math.PI/2; g.add(shaft);
-  [[-0.2,0,0],[0.2,0,0]].forEach(([ox]) => {
-    const knob = new THREE.Mesh(new THREE.SphereGeometry(0.11,6,4), boneMat);
-    knob.position.set(ox,0,0); g.add(knob);
-  });
-  g.position.set(x, 0.35, z);
+
+  // Bottle body
+  const body = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.48, 0.16), bottleMat);
+  body.position.y = 0.24; g.add(body);
+
+  // Liquid fill (inner tinted plane)
+  const liquid = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.36, 0.14), liquidMat);
+  liquid.position.y = 0.20; g.add(liquid);
+
+  // Neck
+  const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.07, 0.14, 8), bottleMat);
+  neck.position.y = 0.55; g.add(neck);
+
+  // Cap
+  const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.055, 0.1, 8), capMat);
+  cap.position.y = 0.67; g.add(cap);
+
+  // Spray nozzle
+  const nozzle = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.04, 0.06), capMat);
+  nozzle.position.set(0.08, 0.72, 0); g.add(nozzle);
+
+  g.position.set(x, 0.3, z);
   g.userData.collected = false;
+  g.userData.message = msg;
   scene.add(g);
   boneMeshes.push(g);
 });
@@ -878,18 +932,19 @@ function animate() {
     }
   }
 
-  // Bone collection
-  boneMeshes.forEach(bone => {
-    if (bone.userData.collected) return;
-    bone.rotation.y += dt * 2.5;
-    bone.position.y = 0.35 + Math.sin(clock.getElapsedTime()*3 + bone.position.x)*0.06;
-    const dx=player.position.x-bone.position.x, dz=player.position.z-bone.position.z;
-    if (Math.sqrt(dx*dx+dz*dz) < 0.9) {
-      bone.userData.collected = true;
-      scene.remove(bone);
+  // Perfume collection
+  boneMeshes.forEach(perfume => {
+    if (perfume.userData.collected) return;
+    perfume.rotation.y += dt * 2.0;
+    perfume.position.y = 0.3 + Math.sin(clock.getElapsedTime()*2.5 + perfume.position.x)*0.08;
+    const dx=player.position.x-perfume.position.x, dz=player.position.z-perfume.position.z;
+    if (Math.sqrt(dx*dx+dz*dz) < 1.2) {
+      perfume.userData.collected = true;
+      scene.remove(perfume);
       score++;
+      showPerfumeMsg(perfume.userData.message);
       const scoreEl = document.getElementById('score');
-      scoreEl.textContent = score >= 10 ? '🦴 All bones found! 🎉' : `🦴 Bones: ${score} / 10`;
+      scoreEl.textContent = score >= 10 ? '🌸 כל הבשמים נמצאו! 💕' : `🌸 בשמים: ${score} / 10`;
       scoreEl.classList.add('pop');
       setTimeout(() => scoreEl.classList.remove('pop'), 150);
     }

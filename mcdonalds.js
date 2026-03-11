@@ -76,8 +76,8 @@ const MCD_X = 27, MCD_Z = -30;
   lctx.fillStyle = '#ffbb00'; lctx.font = 'bold 34px Impact,Arial'; lctx.textAlign = 'center';
   lctx.fillText('🍔  MENU  🌯', 128, 36);
   const label = new THREE.Mesh(new THREE.PlaneGeometry(4.5, 0.85),
-    new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(lc), transparent: true }));
-  label.position.set(MCD_X, 6.4, MCD_Z + 9.9);
+    new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(lc), transparent: true, side: THREE.DoubleSide }));
+  label.position.set(MCD_X, 6.4, MCD_Z + 10.12);
   scene.add(label);
 
   // Spotlight on the sign
@@ -85,15 +85,14 @@ const MCD_X = 27, MCD_Z = -30;
   spotlight.position.set(MCD_X, 7.5, MCD_Z + 8);
   scene.add(spotlight);
 
-  // Menu image — load texture
+  // Menu image — load texture, double-sided so visible from both street and entrance
   const loader = new THREE.TextureLoader();
   loader.load('tortia.jpg', tex => {
-    tex.encoding = THREE.sRGBEncoding;
     const menuMesh = new THREE.Mesh(
       new THREE.PlaneGeometry(6.8, 5.0),
-      new THREE.MeshBasicMaterial({ map: tex })
+      new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide })
     );
-    menuMesh.position.set(MCD_X, 3.5, MCD_Z + 9.9);
+    menuMesh.position.set(MCD_X, 3.5, MCD_Z + 10.12);
     scene.add(menuMesh);
   });
 })();

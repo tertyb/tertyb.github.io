@@ -7,10 +7,10 @@ renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.outputEncoding = THREE.sRGBEncoding;
 renderer.physicallyCorrectLights = true;
-renderer.setClearColor(0xb8cfe8);
+renderer.setClearColor(0xf0a060); // warm amber sky
 
 const scene = new THREE.Scene();
-scene.fog = new THREE.Fog(0xb8cfe8, 80, 350);
+scene.fog = new THREE.Fog(0xf0a060, 80, 320);
 
 const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 600);
 camera.position.set(0, 6, 12);
@@ -21,12 +21,12 @@ window.addEventListener('resize', () => {
   camera.updateProjectionMatrix();
 });
 
-// ── Lighting ──────────────────────────────────────────────────────────────────
-const ambientLight = new THREE.AmbientLight(0xfff4e0, 1.2);
+// ── Lighting — 6 PM golden hour ───────────────────────────────────────────────
+const ambientLight = new THREE.AmbientLight(0xff9944, 0.7); // warm orange ambient
 scene.add(ambientLight);
-const hemiLight = new THREE.HemisphereLight(0x87CEEB, 0x4caf50, 1.0);
-const sun = new THREE.DirectionalLight(0xfffde7, 3.0);
-sun.position.set(20, 40, 20);
+const hemiLight = new THREE.HemisphereLight(0xffb060, 0x8b5c20, 0.6); // amber sky, brown ground
+const sun = new THREE.DirectionalLight(0xff8833, 1.6); // deep orange sun, low intensity
+sun.position.set(60, 18, 30); // low on horizon
 sun.castShadow = true;
 sun.shadow.camera.left = -80; sun.shadow.camera.right = 80;
 sun.shadow.camera.top  =  80; sun.shadow.camera.bottom = -80;
