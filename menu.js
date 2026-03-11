@@ -1,3 +1,58 @@
+// ── Password screen ────────────────────────────────────────────────────────────
+(function buildPasswordScreen() {
+  const ps = document.createElement('div');
+  ps.id = 'password-screen';
+  ps.style.cssText = [
+    'position:fixed','inset:0','z-index:2000',
+    'background:linear-gradient(135deg,#060618 0%,#0e0e35 55%,#060c22 100%)',
+    'display:flex','flex-direction:column','align-items:center','justify-content:center',
+    'font-family:Arial,sans-serif',
+  ].join(';');
+
+  ps.innerHTML = `
+    <div style="font-size:72px;margin-bottom:16px;">🐾</div>
+    <h1 style="color:#fff;font-size:36px;margin:0 0 8px;
+      text-shadow:0 0 30px rgba(100,180,255,0.8);">עולם סנופי</h1>
+    <p style="color:#88aadd;font-size:16px;margin:0 0 36px;letter-spacing:1px;">הכנס סיסמה כדי להיכנס</p>
+    <input id="pw-input" type="password" maxlength="10"
+      style="font-size:28px;letter-spacing:8px;text-align:center;
+             width:180px;padding:12px 16px;border-radius:14px;
+             border:2px solid rgba(255,255,255,0.2);
+             background:rgba(255,255,255,0.08);color:#fff;
+             outline:none;font-family:Arial,sans-serif;"
+      placeholder="••••" />
+    <div id="pw-error" style="color:#ff6b6b;font-size:15px;margin-top:14px;
+      height:20px;font-family:Arial,sans-serif;"></div>
+    <button id="pw-btn"
+      style="margin-top:22px;padding:13px 44px;font-size:20px;font-weight:bold;
+             background:linear-gradient(135deg,#22cc66,#119944);color:#fff;
+             border:none;border-radius:50px;cursor:pointer;
+             box-shadow:0 4px 24px rgba(34,204,102,0.5);font-family:Arial,sans-serif;">
+      כניסה ←
+    </button>
+  `;
+  document.body.appendChild(ps);
+
+  function tryPassword() {
+    const val = document.getElementById('pw-input').value;
+    if (val === '1503') {
+      ps.style.transition = 'opacity 0.6s';
+      ps.style.opacity = '0';
+      setTimeout(() => { ps.style.display = 'none'; }, 620);
+    } else {
+      const err = document.getElementById('pw-error');
+      err.textContent = '❌ סיסמה שגויה, נסה שוב';
+      document.getElementById('pw-input').value = '';
+      setTimeout(() => { err.textContent = ''; }, 2000);
+    }
+  }
+
+  document.getElementById('pw-btn').addEventListener('click', tryPassword);
+  document.getElementById('pw-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') tryPassword();
+  });
+})();
+
 // ── Main Menu ──────────────────────────────────────────────────────────────────
 
 // Inject CSS
@@ -66,8 +121,8 @@ _card.innerHTML = `
   <h1 id="menu-title">עולם סנופי</h1>
   <p id="menu-sub">הרפתקה תלת-מימדית</p>
   <button class="mbtn mbtn-play" id="mbtn-play">🎮 שחק</button>
-  <button class="mbtn mbtn-sec" id="mbtn-settings">⚙️ הגדרות</button>
-  <button class="mbtn mbtn-sec" id="mbtn-letter">✉️ מכתב לסנופי</button>
+  <button class="mbtn mbtn-sec" id="mbtn-settings">📖 הוראות</button>
+  <button class="mbtn mbtn-sec" id="mbtn-letter">🐾 סנופי</button>
 `;
 _menuEl.appendChild(_card);
 document.body.appendChild(_menuEl);
@@ -77,22 +132,22 @@ const _panelSettings = document.createElement('div');
 _panelSettings.className = 'mpanel';
 _panelSettings.id = 'mpanel-settings';
 _panelSettings.innerHTML = `
-  <h2 style="color:#fff;font-size:38px;margin:0 0 28px">⚙️ הגדרות</h2>
-  <div style="background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);
-              padding:32px 48px;border-radius:20px;color:#cce;font-size:17px;
-              line-height:2.3;text-align:right;min-width:360px;max-width:500px">
-    <span style="color:#88bbff;font-size:19px;font-weight:bold">בקרות:</span><br>
-    <b>WASD / חצים</b> — תנועה<br>
-    <b>Shift</b> — ריצה<br>
-    <b>Space</b> — קפיצה / עלייה במטוס<br>
-    <b>E</b> — אינטראקציה / כניסה לרכב<br>
-    <b>F</b> — ירי (מטוס) / מכה עם שמפו<br>
-    <b>עכבר</b> — סיבוב מצלמה<br>
-    <hr style="border-color:rgba(255,255,255,0.1);margin:14px 0">
-    <span style="color:#88bbff;font-size:19px;font-weight:bold">על המשחק:</span><br>
-    גרסה 1.0 &nbsp;|&nbsp; עולם סנופי 🐾
+  <div style="font-size:56px;margin-bottom:10px;">🐾</div>
+  <h2 style="color:#ffd700;font-size:32px;margin:0 0 20px">הוראות</h2>
+  <div style="background:#fffde7;color:#3a2800;
+              padding:28px 36px;border-radius:14px;
+              width:min(500px,90vw);max-height:60vh;overflow-y:auto;
+              font-size:clamp(15px,2.3vw,19px);line-height:2.2;
+              text-align:right;direction:rtl;
+              box-shadow:0 10px 50px rgba(0,0,0,0.7);font-family:Georgia,serif">
+    <b style="font-size:clamp(17px,2.6vw,22px);color:#6b3a00">סנופי יקרה, ברוכה הבאה למשחק שלך 🌸</b><br><br>
+    המטרה שלך היא למצוא את כל הבשמים במשחק.<br><br>
+    חוץ מזה, המטרה השנייה היא להנות. 😊<br><br>
+    <hr style="border:none;border-top:1px solid #d4b896;margin:10px 0">
+    <br>
+    בהצלחה, אני אוהב אותך. 💚
   </div>
-  <button class="mbtn mbtn-back" id="mbtn-settings-back" style="margin-top:30px">← חזור</button>
+  <button class="mbtn mbtn-back" id="mbtn-settings-back" style="margin-top:22px">← חזור</button>
 `;
 document.body.appendChild(_panelSettings);
 
@@ -101,12 +156,16 @@ const _panelLetter = document.createElement('div');
 _panelLetter.className = 'mpanel';
 _panelLetter.id = 'mpanel-letter';
 _panelLetter.innerHTML = `
-  <h2 style="color:#ffd700;font-size:38px;margin:0 0 22px">✉️ מכתב לסנופי</h2>
-  <div style="background:#fffde7;color:#3a2800;padding:40px 50px;border-radius:6px;
-              max-width:540px;font-size:18px;line-height:2.1;text-align:right;direction:rtl;
+  <div style="font-size:64px;margin-bottom:8px;">🐾</div>
+  <h2 style="color:#ffd700;font-size:32px;margin:0 0 16px">סנופי שלי</h2>
+  <div style="background:#fffde7;color:#3a2800;
+              padding:28px 32px;border-radius:14px;
+              width:min(520px,90vw);max-height:60vh;overflow-y:auto;
+              font-size:clamp(14px,2.2vw,18px);line-height:2.0;
+              text-align:right;direction:rtl;
               box-shadow:0 10px 50px rgba(0,0,0,0.7);font-family:Georgia,serif;position:relative">
-    <div style="position:absolute;top:14px;left:18px;font-size:36px;opacity:0.12;user-select:none">🐾🐾</div>
-    <b style="font-size:22px;color:#6b3a00">סנופי שלי,</b><br><br>
+    <div style="position:absolute;top:10px;left:14px;font-size:30px;opacity:0.1;user-select:none">🐾🐾</div>
+    <b style="font-size:clamp(16px,2.5vw,22px);color:#6b3a00">סנופי שלי,</b><br><br>
     אני אוהב אותך הכי בעולם.<br><br>
     חשבתי לא מעט מה להכין לך לשנה שלנו<br>
     והחלטתי להכין לך משהו שאני טוב בו —<br>
@@ -117,10 +176,10 @@ _panelLetter.innerHTML = `
     ובעיקר תהני. 🐾<br><br>
     אוהב אותך עד השמיים<br>
     ומאחל לנו עוד המון שנים ביחד.<br><br>
-    <b style="font-size:20px;color:#6b3a00">אני אוהב אותך.</b><br><br>
-    <span style="color:#aa6600;font-size:17px">— סנופ 💚</span>
+    <b style="font-size:clamp(15px,2.3vw,20px);color:#6b3a00">אני אוהב אותך.</b><br><br>
+    <span style="color:#aa6600;font-size:clamp(13px,2vw,17px)">— סנופ 💚</span>
   </div>
-  <button class="mbtn mbtn-back" id="mbtn-letter-back" style="margin-top:30px">← חזור</button>
+  <button class="mbtn mbtn-back" id="mbtn-letter-back" style="margin-top:22px">← חזור</button>
 `;
 document.body.appendChild(_panelLetter);
 
@@ -176,3 +235,26 @@ document.getElementById('mbtn-letter').addEventListener('click', () => {
 document.getElementById('mbtn-letter-back').addEventListener('click', () => {
   _panelLetter.style.display = 'none';
 });
+
+// ── In-game back-to-menu button ─────────────────────────────────────────────────
+const _backToMenuBtn = document.createElement('button');
+_backToMenuBtn.textContent = '🏠 תפריט';
+_backToMenuBtn.style.cssText = [
+  'position:fixed','top:14px','right:14px','z-index:40',
+  'background:rgba(0,0,0,0.65)','color:#fff','font-size:14px','font-weight:bold',
+  'padding:7px 16px','border-radius:20px','border:1px solid rgba(255,255,255,0.25)',
+  'cursor:pointer','display:none','font-family:Arial,sans-serif',
+  'box-shadow:0 2px 8px rgba(0,0,0,0.4)',
+].join(';');
+_backToMenuBtn.addEventListener('click', () => {
+  document.getElementById('hud').style.display = 'none';
+  _backToMenuBtn.style.display = 'none';
+  _menuEl.style.display = 'flex';
+  _menuEl.style.opacity = '1';
+});
+document.body.appendChild(_backToMenuBtn);
+
+// Show back button once game starts
+document.getElementById('mbtn-play').addEventListener('click', () => {
+  setTimeout(() => { _backToMenuBtn.style.display = 'block'; }, 800);
+}, { once: true });

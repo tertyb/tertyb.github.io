@@ -32,7 +32,7 @@ const perfumeData = [
   [2,   -243,  'אני אוהב לראות איתך סרטים'],           // חצי חינם parking
   [148,   64,  'אני אוהב את הריח שלך'],                // Jewelry store
   [-53,   77,  'אני אוהב את החיבוק שלך'],              // Grandpa & Grandma
-  [30,  -106,  'אני אוהב להכין איתך אוכל'],            // Alegra & Leon
+  [30,   -99,  'אני אוהב להכין איתך אוכל'],            // Alegra & Leon
   [2,    114,  'אני אוהב לשתות איתך יין'],             // Military base
   [50,    22,  'אני אוהב את הצחוק היפה שלך'],          // Basketball court
   [-10,  -88,  'אני אוהב איך שאת גורמת לי להרגיש'],   // Big Ashdod
@@ -174,6 +174,7 @@ function showGameComplete() {
     setTimeout(() => c.remove(), 8000);
   }
   winScreenEl.style.display = 'flex';
+  setTimeout(() => { winScreenEl.style.display = 'none'; }, 10000);
 }
 window._showGameComplete = showGameComplete;
 

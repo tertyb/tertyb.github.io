@@ -236,7 +236,7 @@ window._snoopyRomePos = { x: GEORGE_X, z: GEORGE_Z };
     homePos: { x: GEORGE_X, z: GEORGE_Z },
     walkTarget: null, walkWait: 99, talkVisible: false, dialogueIdx: 0,
     dialogues: [
-      '🐾 זה אני סנופ,<br>אני אוהב אותך הכי בעולם 💕',
+      '🐾 זה אני סנופ <br>אני אוהב אותך הכי בעולם 💕',
     ],
     hintEl,
     bubbleEl,
@@ -279,17 +279,14 @@ function spawnFirework() {
   }
 }
 
-// E near Snoopy — fireworks always; game complete when all perfumes collected
+// Trigger fireworks every time E is pressed near George
 window.addEventListener('keydown', e => {
   if (e.code !== 'KeyE') return;
   const dx = player.position.x - GEORGE_X, dz = player.position.z - GEORGE_Z;
   if (Math.sqrt(dx*dx + dz*dz) < 5) {
     fireworksActive = true;
-    fireworksTimer = 30.0;
+    fireworksTimer = 14.0;
     fireworksSpawnTimer = 0;
-    if (score >= 10) {
-      setTimeout(() => window._showGameComplete && window._showGameComplete(), 2800);
-    }
   }
 });
 
@@ -1063,29 +1060,3 @@ window.addEventListener('keydown', e => {
   player.visible = true;
 });
 
-// ── Teleport to Rome button ────────────────────────────────────────────────────
-const teleportRomeBtn = document.createElement('button');
-teleportRomeBtn.textContent = '✈️ טוס לרומא';
-teleportRomeBtn.style.cssText = [
-  'position:fixed','bottom:20px','right:20px',
-  'background:rgba(139,26,26,0.92)','color:#ffd700','font-size:15px','font-weight:bold',
-  'padding:10px 22px','border-radius:14px','border:2px solid #ffd700',
-  'cursor:pointer','z-index:30','font-family:Arial,sans-serif',
-  'box-shadow:0 3px 12px rgba(0,0,0,0.5)',
-].join(';');
-document.body.appendChild(teleportRomeBtn);
-
-teleportRomeBtn.addEventListener('click', () => {
-  if (inPlane) {
-    // Teleport plane directly to Rome runway
-    playerPlane.position.set(ROME_CX, 0.56, ROME_RUNWAY_Z);
-    playerPlane.rotation.y = 0;
-    planeSpeed = 0; planeVelY = 0;
-  } else {
-    // Board the plane at the runway and fly there
-    playerPlane.position.set(ROME_CX, 0.56, ROME_RUNWAY_Z);
-    playerPlane.rotation.y = 0;
-    player.position.set(ROME_CX + 3, 0, ROME_RUNWAY_Z);
-    player.visible = true;
-  }
-});

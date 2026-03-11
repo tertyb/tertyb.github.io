@@ -64,42 +64,42 @@ const _spCounter = new THREE.MeshLambertMaterial({ color: 0x006633 });   // deep
   signMesh.position.set(SP_CX - SP_HD - 0.35, SP_H - 1.5, SP_CZ);
   signMesh.rotation.y = Math.PI/2; scene.add(signMesh);
 
-  // ── Big rooftop sign ──
+  // ── Big rooftop sign — moved forward (west), red & white ──
+  const _spRed = new THREE.MeshLambertMaterial({ color: 0xcc0000 });
   const roofSignBack = new THREE.Mesh(
     new THREE.BoxGeometry(1.2, 6, SP_HW * 2 - 2),
-    _spGreen
+    _spRed
   );
-  roofSignBack.position.set(SP_CX - SP_HD + 0.6, SP_H + 3.5, SP_CZ);
+  roofSignBack.position.set(SP_CX - SP_HD - 4, SP_H + 3.5, SP_CZ);
   scene.add(roofSignBack);
 
   // Support pillars
   [-20, 0, 20].forEach(oz => {
-    const pillar = new THREE.Mesh(new THREE.BoxGeometry(0.4, 1.2, 0.4), _spGreen);
-    pillar.position.set(SP_CX - SP_HD + 0.6, SP_H + 0.6, SP_CZ + oz);
+    const pillar = new THREE.Mesh(new THREE.BoxGeometry(0.4, 1.2, 0.4), _spRed);
+    pillar.position.set(SP_CX - SP_HD - 4, SP_H + 0.6, SP_CZ + oz);
     scene.add(pillar);
   });
 
-  // Canvas sign — west-facing (toward players approaching from the road)
+  // Canvas sign — red background, white text
   const bigC = document.createElement('canvas'); bigC.width = 2048; bigC.height = 512;
   const bctx = bigC.getContext('2d');
-  // Green background
-  bctx.fillStyle = '#009944'; bctx.fillRect(0, 0, 2048, 512);
+  bctx.fillStyle = '#cc0000'; bctx.fillRect(0, 0, 2048, 512);
   // White pharmacy cross on the left
   bctx.fillStyle = '#ffffff';
   bctx.fillRect(60, 160, 160, 60);   // horizontal bar
   bctx.fillRect(110, 110, 60, 160);  // vertical bar
-  // Main text
+  // Main text white
   bctx.font = 'bold 220px Arial'; bctx.textAlign = 'left'; bctx.fillStyle = '#ffffff';
   bctx.fillText('Super-Pharm', 280, 350);
-  // Red heart accent
+  // White heart accent
   bctx.font = '180px Arial'; bctx.textAlign = 'right';
-  bctx.fillText('❤️', 2020, 360);
+  bctx.fillText('🤍', 2020, 360);
 
   const bigSignMesh = new THREE.Mesh(
     new THREE.PlaneGeometry(SP_HW * 2 - 2, 6),
     new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(bigC), transparent: true, side: THREE.DoubleSide })
   );
-  bigSignMesh.position.set(SP_CX - SP_HD + 0.01, SP_H + 3.5, SP_CZ);
+  bigSignMesh.position.set(SP_CX - SP_HD - 4.61, SP_H + 3.5, SP_CZ);
   bigSignMesh.rotation.y = -Math.PI / 2; // face west
   scene.add(bigSignMesh);
 
