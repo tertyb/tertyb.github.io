@@ -22,9 +22,13 @@ const ROME_CX = 0, ROME_CZ = 1800;
     lz.rotation.x = -Math.PI/2; lz.position.set(ROME_CX, 0.005, ROME_CZ + i); scene.add(lz);
   }
 
-  // Sky ambient for Rome area (extra point light for warmth)
-  const sunLight = new THREE.PointLight(0xfff3cc, 0.6, 400);
-  sunLight.position.set(ROME_CX, 80, ROME_CZ); scene.add(sunLight);
+  // Sky ambient for Rome area — strong overhead lights so buildings are visible
+  const sunLight = new THREE.PointLight(0xfffbe8, 4.5, 700);
+  sunLight.position.set(ROME_CX, 90, ROME_CZ); scene.add(sunLight);
+  const fillLight = new THREE.PointLight(0xffd090, 3.0, 500);
+  fillLight.position.set(ROME_CX + 60, 50, ROME_CZ + 60); scene.add(fillLight);
+  const fillLight2 = new THREE.PointLight(0xffeedd, 2.5, 500);
+  fillLight2.position.set(ROME_CX - 60, 50, ROME_CZ - 60); scene.add(fillLight2);
 })();
 
 // ── Landing Strip ─────────────────────────────────────────────────────────────
@@ -66,8 +70,8 @@ const ROME_RUNWAY_Z = ROME_CZ - 80;
 
 // ── Welcome Arch (City Gate) ──────────────────────────────────────────────────
 (function buildCityGate() {
-  const stone = new THREE.MeshLambertMaterial({ color: 0xc8b490 });
-  const dark  = new THREE.MeshLambertMaterial({ color: 0x9a8060 });
+  const stone = new THREE.MeshLambertMaterial({ color: 0xe8c878 });
+  const dark  = new THREE.MeshLambertMaterial({ color: 0x8a5c20 });
 
   // Two main pillars
   [-8, 8].forEach(ox => {
@@ -104,9 +108,9 @@ const ROME_RUNWAY_Z = ROME_CZ - 80;
 // ── Colosseum ─────────────────────────────────────────────────────────────────
 (function buildColosseum() {
   const CX = ROME_CX - 55, CZ = ROME_CZ + 10;
-  const stone = new THREE.MeshLambertMaterial({ color: 0xd4b896 });
-  const dark  = new THREE.MeshLambertMaterial({ color: 0x8a6a50 });
-  const innerMat = new THREE.MeshLambertMaterial({ color: 0x6b5040 });
+  const stone = new THREE.MeshLambertMaterial({ color: 0xf0a040 });
+  const dark  = new THREE.MeshLambertMaterial({ color: 0x7a3a10 });
+  const innerMat = new THREE.MeshLambertMaterial({ color: 0x5a3010 });
 
   const NUM_PIERS = 24;
   const R1 = 22, R2 = 16;
@@ -177,9 +181,9 @@ const ROME_RUNWAY_Z = ROME_CZ - 80;
 // ── Pantheon ──────────────────────────────────────────────────────────────────
 (function buildPantheon() {
   const PX = ROME_CX + 55, PZ = ROME_CZ;
-  const stone = new THREE.MeshLambertMaterial({ color: 0xc8b490 });
-  const domeM = new THREE.MeshLambertMaterial({ color: 0xb0a080 });
-  const dark  = new THREE.MeshLambertMaterial({ color: 0x7a6040 });
+  const stone = new THREE.MeshLambertMaterial({ color: 0xf5d078 });
+  const domeM = new THREE.MeshLambertMaterial({ color: 0xd0a050 });
+  const dark  = new THREE.MeshLambertMaterial({ color: 0x7a4010 });
 
   // Rotunda body
   const body = new THREE.Mesh(new THREE.CylinderGeometry(13, 13, 10, 20, 1, true), stone);
@@ -234,8 +238,8 @@ const ROME_RUNWAY_Z = ROME_CZ - 80;
 
 // ── Roman Forum Columns ───────────────────────────────────────────────────────
 (function buildForum() {
-  const stone = new THREE.MeshLambertMaterial({ color: 0xd4c8a8 });
-  const base  = new THREE.MeshLambertMaterial({ color: 0xc0b090 });
+  const stone = new THREE.MeshLambertMaterial({ color: 0xf0d898 });
+  const base  = new THREE.MeshLambertMaterial({ color: 0xd09848 });
 
   // Two rows of columns along the main road
   const colPositions = [];
@@ -261,7 +265,7 @@ const ROME_RUNWAY_Z = ROME_CZ - 80;
 // ── Central Fountain ──────────────────────────────────────────────────────────
 (function buildFountain() {
   const FX = ROME_CX, FZ = ROME_CZ + 30;
-  const stone = new THREE.MeshLambertMaterial({ color: 0xd0c0a0 });
+  const stone = new THREE.MeshLambertMaterial({ color: 0xe8b860 });
   const water = new THREE.MeshLambertMaterial({ color: 0x4fc3f7, transparent: true, opacity: 0.8 });
 
   // Basin
@@ -284,9 +288,9 @@ const ROME_RUNWAY_Z = ROME_CZ - 80;
 
 // ── Roman Buildings (houses/temples) ─────────────────────────────────────────
 (function buildRomanBuildings() {
-  const stone = new THREE.MeshLambertMaterial({ color: 0xddd0b0 });
-  const roof  = new THREE.MeshLambertMaterial({ color: 0xcc6633 }); // terracotta
-  const door  = new THREE.MeshLambertMaterial({ color: 0x6b4020 });
+  const stone = new THREE.MeshLambertMaterial({ color: 0xe87840 }); // warm terracotta orange — clearly visible
+  const roof  = new THREE.MeshLambertMaterial({ color: 0xaa2200 }); // deep red roof
+  const door  = new THREE.MeshLambertMaterial({ color: 0x3a1800 });
 
   const buildings = [
     { x: -35, z: ROME_CZ - 30, w: 16, h: 7, d: 12 },
@@ -422,6 +426,307 @@ const ROME_RUNWAY_Z = ROME_CZ - 80;
   });
 })();
 
+// ── Hotel-87 ──────────────────────────────────────────────────────────────────
+(function buildHotel87() {
+  const HX = ROME_CX + 5, HZ = ROME_CZ + 100;
+  const wallM  = new THREE.MeshLambertMaterial({ color: 0xf5ede0 }); // warm cream
+  const accentM= new THREE.MeshLambertMaterial({ color: 0x8b1a1a }); // deep red
+  const glassM = new THREE.MeshBasicMaterial({ color: 0xaaddff, transparent: true, opacity: 0.65 });
+  const darkM  = new THREE.MeshLambertMaterial({ color: 0x4a3020 });
+
+  // Main tower (tall building)
+  const tower = new THREE.Mesh(new THREE.BoxGeometry(18, 20, 14), wallM);
+  tower.position.set(HX, 10, HZ); scene.add(tower);
+
+  // Side wing
+  const wing = new THREE.Mesh(new THREE.BoxGeometry(10, 12, 14), wallM);
+  wing.position.set(HX - 14, 6, HZ); scene.add(wing);
+
+  // Red accent bands (floor dividers)
+  [4, 8, 12, 16].forEach(y => {
+    const band = new THREE.Mesh(new THREE.BoxGeometry(19, 0.5, 14.2), accentM);
+    band.position.set(HX, y, HZ); scene.add(band);
+  });
+  [4, 8].forEach(y => {
+    const band = new THREE.Mesh(new THREE.BoxGeometry(10.2, 0.5, 14.2), accentM);
+    band.position.set(HX - 14, y, HZ); scene.add(band);
+  });
+
+  // Windows grid — main tower
+  for (let wy = 3; wy <= 17; wy += 4) {
+    for (let wx = -6; wx <= 6; wx += 4) {
+      const win = new THREE.Mesh(new THREE.PlaneGeometry(2.2, 2.5), glassM);
+      win.position.set(HX + wx, wy, HZ - 7.1); scene.add(win);
+      const winB = win.clone(); winB.rotation.y = Math.PI; winB.position.z += 14.2; scene.add(winB);
+    }
+  }
+  // Windows — wing
+  for (let wy = 3; wy <= 9; wy += 4) {
+    for (let wx = -4; wx <= 4; wx += 4) {
+      const win = new THREE.Mesh(new THREE.PlaneGeometry(2.2, 2.5), glassM);
+      win.position.set(HX - 14 + wx, wy, HZ - 7.1); scene.add(win);
+    }
+  }
+
+  // Roof parapet
+  const parapet = new THREE.Mesh(new THREE.BoxGeometry(19, 1.2, 14.5), accentM);
+  parapet.position.set(HX, 20.6, HZ); scene.add(parapet);
+
+  // Entrance canopy
+  const canopy = new THREE.Mesh(new THREE.BoxGeometry(8, 0.3, 3), accentM);
+  canopy.position.set(HX, 3.5, HZ - 7.4); scene.add(canopy);
+  // Entrance door
+  const door = new THREE.Mesh(new THREE.BoxGeometry(2.8, 3.2, 0.3), darkM);
+  door.position.set(HX, 1.6, HZ - 7.1); scene.add(door);
+
+  // "HOTEL-87" sign
+  const hC = document.createElement('canvas'); hC.width = 512; hC.height = 128;
+  const hctx = hC.getContext('2d');
+  hctx.fillStyle = '#8b1a1a'; hctx.fillRect(0, 0, 512, 128);
+  hctx.strokeStyle = '#ffd700'; hctx.lineWidth = 5; hctx.strokeRect(4, 4, 504, 120);
+  hctx.fillStyle = '#ffd700'; hctx.font = 'bold 64px Georgia,serif'; hctx.textAlign = 'center';
+  hctx.fillText('HOTEL-87', 256, 88);
+  const hSign = new THREE.Mesh(new THREE.PlaneGeometry(10, 2.5),
+    new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(hC), transparent: true }));
+  hSign.position.set(HX, 21.8, HZ - 6.9); scene.add(hSign);
+
+  // Lobby light
+  const lobbyLight = new THREE.PointLight(0xfff3cc, 1.5, 18);
+  lobbyLight.position.set(HX, 4, HZ - 4); scene.add(lobbyLight);
+
+  colliders.push({ x: HX, z: HZ, radius: 10 });
+  colliders.push({ x: HX - 14, z: HZ, radius: 6 });
+})();
+
+// ── Bona Pizza ────────────────────────────────────────────────────────────────
+const PIZZA_X = ROME_CX - 28, PIZZA_Z = ROME_CZ + 55;
+(function buildBonaPizza() {
+  const wallM  = new THREE.MeshLambertMaterial({ color: 0xfff3e0 }); // warm white
+  const roofM  = new THREE.MeshLambertMaterial({ color: 0xcc3300 }); // tomato red
+  const accentM= new THREE.MeshLambertMaterial({ color: 0x228822 }); // Italian green
+  const glassM = new THREE.MeshBasicMaterial({ color: 0xaaeebb, transparent: true, opacity: 0.6 });
+
+  const body = new THREE.Mesh(new THREE.BoxGeometry(14, 7, 10), wallM);
+  body.position.set(PIZZA_X, 3.5, PIZZA_Z); scene.add(body);
+
+  // Green stripe
+  const stripe = new THREE.Mesh(new THREE.BoxGeometry(14.2, 0.8, 10.2), accentM);
+  stripe.position.set(PIZZA_X, 6.1, PIZZA_Z); scene.add(stripe);
+
+  // Roof
+  const roof = new THREE.Mesh(new THREE.BoxGeometry(14.5, 0.5, 10.5), roofM);
+  roof.position.set(PIZZA_X, 7.25, PIZZA_Z); scene.add(roof);
+
+  // Windows
+  [-3.5, 3.5].forEach(wx => {
+    const w = new THREE.Mesh(new THREE.PlaneGeometry(2.5, 2.2), glassM);
+    w.position.set(PIZZA_X + wx, 3.8, PIZZA_Z - 5.1); scene.add(w);
+  });
+  // Door
+  const door = new THREE.Mesh(new THREE.BoxGeometry(2.2, 3.5, 0.3),
+    new THREE.MeshLambertMaterial({ color: 0x5c2d00 }));
+  door.position.set(PIZZA_X, 1.75, PIZZA_Z - 5.1); scene.add(door);
+
+  // "BONA PIZZA" sign
+  const pC = document.createElement('canvas'); pC.width = 512; pC.height = 128;
+  const pctx = pC.getContext('2d');
+  const grad = pctx.createLinearGradient(0,0,512,0);
+  grad.addColorStop(0,'#cc3300'); grad.addColorStop(0.5,'#ffffff'); grad.addColorStop(1,'#228822');
+  pctx.fillStyle = grad; pctx.fillRect(0,0,512,128);
+  pctx.fillStyle = '#1a1a1a'; pctx.font = 'bold 56px Georgia,serif'; pctx.textAlign = 'center';
+  pctx.fillText('🍕 BONA PIZZA', 256, 82);
+  const pSign = new THREE.Mesh(new THREE.PlaneGeometry(10, 2.5),
+    new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(pC), transparent: true }));
+  pSign.position.set(PIZZA_X, 8.2, PIZZA_Z - 4.9); scene.add(pSign);
+
+  // Warm pizza-oven light
+  const ovenLight = new THREE.PointLight(0xff8800, 1.2, 14);
+  ovenLight.position.set(PIZZA_X, 3, PIZZA_Z + 2); scene.add(ovenLight);
+
+  colliders.push({ x: PIZZA_X, z: PIZZA_Z, radius: 7 });
+})();
+
+// Pizza NPC (chef)
+(function buildPizzaChef() {
+  const g = new THREE.Group();
+  const whiteM = new THREE.MeshLambertMaterial({ color: 0xf8f8f8 });
+  const skinM  = new THREE.MeshLambertMaterial({ color: 0xe8b87a });
+  const hairM  = new THREE.MeshLambertMaterial({ color: 0x1a0a00 });
+  const redM   = new THREE.MeshLambertMaterial({ color: 0xcc0000 });
+
+  const torso = new THREE.Mesh(new THREE.BoxGeometry(0.75, 1.1, 0.42), whiteM);
+  torso.position.y = 1.05; g.add(torso);
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.32, 10, 8), skinM);
+  head.position.y = 1.88; g.add(head);
+  // Chef hat
+  const hatBase = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.38, 0.22, 10), whiteM);
+  hatBase.position.y = 2.1; g.add(hatBase);
+  const hatTop = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.32, 0.5, 10), whiteM);
+  hatTop.position.y = 2.45; g.add(hatTop);
+  // Mustache
+  const must = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.07, 0.07), hairM);
+  must.position.set(0, 1.76, 0.3); g.add(must);
+  // Apron (red)
+  const apron = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.9, 0.1), redM);
+  apron.position.set(0, 0.85, 0.22); g.add(apron);
+  [[0, 0.5],[0,-0.5]].forEach(([,lz]) => {
+    const leg = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.88, 0.3), whiteM);
+    leg.position.set(0, 0.44, lz); g.add(leg);
+  });
+
+  g.position.set(PIZZA_X + 1, 0, PIZZA_Z - 4.5);
+  scene.add(g);
+  window._pizzaChef = g;
+
+  npcs.push({
+    mesh: g, name: 'שף בונה',
+    homePos: { x: PIZZA_X + 1, z: PIZZA_Z - 4.5 },
+    walkTarget: null, walkWait: 2, talkVisible: false, dialogueIdx: 0,
+    dialogues: [
+      '🍕 Benvenuto a Bona Pizza!<br>אני מכין את הפיצה הכי טובה ברומא!',
+      '🧀 הפיצה שלנו עם <b>בורטה טרייה</b><br>מגיעה מהחווה הטובה ביותר...<br>רק בשבילך סנופי! 🐾',
+      '🍕 Ecco la tua pizza!<br>פיצה עם בורטה — הכי טעים בעולם!',
+    ],
+    hintEl: (() => { const el = document.createElement('div'); el.style.cssText='position:fixed;background:rgba(0,0,0,0.75);color:#fff;font-size:14px;font-weight:bold;padding:5px 14px;border-radius:10px;pointer-events:none;z-index:20;display:none;font-family:Arial,sans-serif'; el.textContent='[E] Talk'; document.body.appendChild(el); return el; })(),
+    bubbleEl: (() => { const el = document.createElement('div'); el.style.cssText='position:fixed;background:#fffde7;color:#3a1a00;font-size:15px;padding:12px 18px;border-radius:14px;pointer-events:none;z-index:30;display:none;font-family:Georgia,serif;max-width:300px;line-height:1.6;border:2px solid #cc3300;text-align:center;direction:rtl'; document.body.appendChild(el); return el; })(),
+  });
+})();
+
+// Pizza gift interaction
+const pizzaGiftEl = document.createElement('div');
+pizzaGiftEl.style.cssText = [
+  'position:fixed','top:25%','left:50%','transform:translateX(-50%)',
+  'background:rgba(180,30,0,0.96)','color:#fff','font-size:20px',
+  'padding:28px 40px','border-radius:18px','pointer-events:none','z-index:40',
+  'display:none','font-family:Georgia,serif','text-align:center',
+  'border:3px solid #ffcc00','max-width:420px','line-height:1.8',
+].join(';');
+pizzaGiftEl.innerHTML = '🍕<br><br><b>Bona Pizza!</b><br>פיצה עם בורטה טרייה<br><span style="color:#ffcc00;font-size:16px">Il meglio di Roma — הכי טוב ברומא 🐾</span>';
+document.body.appendChild(pizzaGiftEl);
+let pizzaGiftTimer = 0;
+
+window.addEventListener('keydown', e => {
+  if (e.code !== 'KeyE') return;
+  const dx = player.position.x - (PIZZA_X + 1);
+  const dz = player.position.z - (PIZZA_Z - 4.5);
+  if (Math.sqrt(dx*dx + dz*dz) < 4.5) {
+    pizzaGiftEl.style.display = 'block';
+    pizzaGiftTimer = 5.0;
+  }
+});
+
+// ── Pompi — Tiramisu ──────────────────────────────────────────────────────────
+const POMPI_X = ROME_CX + 32, POMPI_Z = ROME_CZ + 55;
+(function buildPompi() {
+  const wallM  = new THREE.MeshLambertMaterial({ color: 0xfff8f0 }); // cream
+  const roofM  = new THREE.MeshLambertMaterial({ color: 0x5c3d1e }); // coffee brown
+  const trimM  = new THREE.MeshLambertMaterial({ color: 0xd4a855 }); // gold trim
+  const glassM = new THREE.MeshBasicMaterial({ color: 0xffe8cc, transparent: true, opacity: 0.65 });
+
+  const body = new THREE.Mesh(new THREE.BoxGeometry(12, 7, 9), wallM);
+  body.position.set(POMPI_X, 3.5, POMPI_Z); scene.add(body);
+
+  // Gold trim band
+  const trim = new THREE.Mesh(new THREE.BoxGeometry(12.2, 0.7, 9.2), trimM);
+  trim.position.set(POMPI_X, 6.1, POMPI_Z); scene.add(trim);
+
+  // Coffee-brown roof
+  const roof = new THREE.Mesh(new THREE.BoxGeometry(12.5, 0.5, 9.5), roofM);
+  roof.position.set(POMPI_X, 7.25, POMPI_Z); scene.add(roof);
+
+  // Display window
+  const dispWin = new THREE.Mesh(new THREE.PlaneGeometry(5, 2.5), glassM);
+  dispWin.position.set(POMPI_X, 3.2, POMPI_Z - 4.6); scene.add(dispWin);
+  // Door
+  const door = new THREE.Mesh(new THREE.BoxGeometry(2, 3.2, 0.3),
+    new THREE.MeshLambertMaterial({ color: 0x3e1a00 }));
+  door.position.set(POMPI_X + 3.2, 1.6, POMPI_Z - 4.6); scene.add(door);
+
+  // "POMPI" sign
+  const tC = document.createElement('canvas'); tC.width = 512; tC.height = 128;
+  const tctx = tC.getContext('2d');
+  tctx.fillStyle = '#5c3d1e'; tctx.fillRect(0, 0, 512, 128);
+  tctx.strokeStyle = '#d4a855'; tctx.lineWidth = 6; tctx.strokeRect(5, 5, 502, 118);
+  tctx.fillStyle = '#ffd700'; tctx.font = 'bold 52px Georgia,serif'; tctx.textAlign = 'center';
+  tctx.fillText('☕ POMPI', 256, 58);
+  tctx.fillStyle = '#f5deb3'; tctx.font = '26px Georgia,serif';
+  tctx.fillText('Tiramisù Autentico', 256, 100);
+  const tSign = new THREE.Mesh(new THREE.PlaneGeometry(9, 2.3),
+    new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(tC), transparent: true }));
+  tSign.position.set(POMPI_X, 8.2, POMPI_Z - 4.4); scene.add(tSign);
+
+  // Cozy warm light
+  const warmLight = new THREE.PointLight(0xff9933, 1.3, 14);
+  warmLight.position.set(POMPI_X, 3.5, POMPI_Z); scene.add(warmLight);
+
+  colliders.push({ x: POMPI_X, z: POMPI_Z, radius: 6.5 });
+})();
+
+// Pompi NPC (barista)
+(function buildPompiBarista() {
+  const g = new THREE.Group();
+  const brownM = new THREE.MeshLambertMaterial({ color: 0x5c3d1e });
+  const skinM  = new THREE.MeshLambertMaterial({ color: 0xf0c8a0 });
+  const blondM = new THREE.MeshLambertMaterial({ color: 0xd4a030 });
+  const goldM  = new THREE.MeshLambertMaterial({ color: 0xd4a855 });
+
+  const torso = new THREE.Mesh(new THREE.BoxGeometry(0.72, 1.1, 0.42), brownM);
+  torso.position.y = 1.05; g.add(torso);
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.31, 10, 8), skinM);
+  head.position.y = 1.86; g.add(head);
+  // Hair bun
+  const hairBack = new THREE.Mesh(new THREE.SphereGeometry(0.33, 10, 8), blondM);
+  hairBack.position.set(0, 1.96, 0); g.add(hairBack);
+  const bun = new THREE.Mesh(new THREE.SphereGeometry(0.14, 8, 6), blondM);
+  bun.position.set(0, 2.22, -0.1); g.add(bun);
+  // Gold apron
+  const apron = new THREE.Mesh(new THREE.BoxGeometry(0.58, 0.92, 0.1), goldM);
+  apron.position.set(0, 0.86, 0.22); g.add(apron);
+  [[0,0.5],[0,-0.5]].forEach(([,lz]) => {
+    const leg = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.88, 0.3), brownM);
+    leg.position.set(0, 0.44, lz); g.add(leg);
+  });
+
+  g.position.set(POMPI_X - 1, 0, POMPI_Z - 4.2);
+  scene.add(g);
+
+  npcs.push({
+    mesh: g, name: 'בריסטה פומפו',
+    homePos: { x: POMPI_X - 1, z: POMPI_Z - 4.2 },
+    walkTarget: null, walkWait: 2, talkVisible: false, dialogueIdx: 0,
+    dialogues: [
+      '☕ Benvenuto a Pompi!<br>הטירמיסו שלנו — המתכון המקורי<br>מ-1969 מ-Treviso!',
+      '😊 סנופי, עשיתי בשבילך<br>טירמיסו עם <b>מסקרפונה</b> אמיתי<br>וביסקוויטי ספוגיארדי... 🐾',
+      '☕ Tiramisù di Pompi —<br>il dolce più buono del mondo!<br>הכי מתוק בעולם!',
+    ],
+    hintEl: (() => { const el = document.createElement('div'); el.style.cssText='position:fixed;background:rgba(0,0,0,0.75);color:#fff;font-size:14px;font-weight:bold;padding:5px 14px;border-radius:10px;pointer-events:none;z-index:20;display:none;font-family:Arial,sans-serif'; el.textContent='[E] Talk'; document.body.appendChild(el); return el; })(),
+    bubbleEl: (() => { const el = document.createElement('div'); el.style.cssText='position:fixed;background:#fff8f0;color:#3e1a00;font-size:15px;padding:12px 18px;border-radius:14px;pointer-events:none;z-index:30;display:none;font-family:Georgia,serif;max-width:300px;line-height:1.6;border:2px solid #d4a855;text-align:center;direction:rtl'; document.body.appendChild(el); return el; })(),
+  });
+})();
+
+// Tiramisu gift interaction
+const tiramisuGiftEl = document.createElement('div');
+tiramisuGiftEl.style.cssText = [
+  'position:fixed','top:25%','left:50%','transform:translateX(-50%)',
+  'background:rgba(60,26,0,0.97)','color:#ffd700','font-size:20px',
+  'padding:28px 40px','border-radius:18px','pointer-events:none','z-index:40',
+  'display:none','font-family:Georgia,serif','text-align:center',
+  'border:3px solid #d4a855','max-width:420px','line-height:1.8',
+].join(';');
+tiramisuGiftEl.innerHTML = '☕🍰<br><br><b>Tiramisù di Pompi!</b><br>טירמיסו עם מסקרפונה אמיתי<br><span style="color:#f5deb3;font-size:16px">Si scioglie in bocca — נמס בפה 🐾</span>';
+document.body.appendChild(tiramisuGiftEl);
+let tiramisuGiftTimer = 0;
+
+window.addEventListener('keydown', e => {
+  if (e.code !== 'KeyE') return;
+  const dx = player.position.x - (POMPI_X - 1);
+  const dz = player.position.z - (POMPI_Z - 4.2);
+  if (Math.sqrt(dx*dx + dz*dz) < 4.5) {
+    tiramisuGiftEl.style.display = 'block';
+    tiramisuGiftTimer = 5.0;
+  }
+});
+
 // ── Rome arrival detection ─────────────────────────────────────────────────────
 const romeArrivalEl = document.createElement('div');
 romeArrivalEl.style.cssText = [
@@ -452,4 +757,43 @@ function updateRome(dt) {
     romeArrivalTimer -= dt;
     if (romeArrivalTimer <= 0) romeArrivalEl.style.display = 'none';
   }
+  if (pizzaGiftTimer > 0) {
+    pizzaGiftTimer -= dt;
+    if (pizzaGiftTimer <= 0) pizzaGiftEl.style.display = 'none';
+  }
+  if (tiramisuGiftTimer > 0) {
+    tiramisuGiftTimer -= dt;
+    if (tiramisuGiftTimer <= 0) tiramisuGiftEl.style.display = 'none';
+  }
 }
+
+// ── R key — respawn to town when in Rome ──────────────────────────────────────
+const romeRespawnEl = document.createElement('div');
+romeRespawnEl.style.cssText = [
+  'position:fixed','bottom:55px','left:50%','transform:translateX(-50%)',
+  'background:rgba(139,26,26,0.9)','color:#ffd700','font-size:14px','font-weight:bold',
+  'padding:7px 20px','border-radius:12px','pointer-events:none','z-index:25',
+  'display:none','font-family:Arial,sans-serif','border:1px solid #ffd700',
+].join(';');
+romeRespawnEl.textContent = '[R] חזור לעיר הבית';
+document.body.appendChild(romeRespawnEl);
+
+function isInRome() {
+  return player.position.z > ROME_CZ - 120;
+}
+
+// Show hint when in Rome (on foot)
+const _origUpdateRome = updateRome;
+updateRome = function(dt) {
+  _origUpdateRome(dt);
+  romeRespawnEl.style.display = (!inPlane && !inCar && isInRome()) ? 'block' : 'none';
+};
+
+window.addEventListener('keydown', e => {
+  if (e.code !== 'KeyR') return;
+  if (inPlane || inCar) return;
+  if (!isInRome()) return;
+  // Teleport back to main town spawn
+  player.position.set(0, 0, 0);
+  player.visible = true;
+});

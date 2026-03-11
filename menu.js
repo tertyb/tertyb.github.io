@@ -103,25 +103,58 @@ _panelLetter.id = 'mpanel-letter';
 _panelLetter.innerHTML = `
   <h2 style="color:#ffd700;font-size:38px;margin:0 0 22px">✉️ מכתב לסנופי</h2>
   <div style="background:#fffde7;color:#3a2800;padding:40px 50px;border-radius:6px;
-              max-width:500px;font-size:18px;line-height:2;text-align:right;direction:rtl;
+              max-width:540px;font-size:18px;line-height:2.1;text-align:right;direction:rtl;
               box-shadow:0 10px 50px rgba(0,0,0,0.7);font-family:Georgia,serif;position:relative">
     <div style="position:absolute;top:14px;left:18px;font-size:36px;opacity:0.12;user-select:none">🐾🐾</div>
-    <b style="font-size:22px;color:#6b3a00">סנופי היקר,</b><br><br>
-    אתה הכלב הכי מיוחד שיש בכל העולם.<br>
-    בכל יום אתה יוצא להרפתקאות חדשות —<br>
-    טס בשמיים, נוהג בצ'רי, מדבר עם חברים,<br>
-    קונה בסופר-פארם, ואוסף עצמות זהובות. 🦴<br><br>
-    אנחנו אוהבים אותך, סנופי.<br>
-    תמשיך לחייך, לרוץ, ולחיות כל רגע.<br><br>
-    <span style="color:#aa6600;font-size:16px">בהרבה אהבה,</span><br>
-    <b style="font-size:19px">כל מי שמשחק בעולם שלך 💚</b>
+    <b style="font-size:22px;color:#6b3a00">סנופי שלי,</b><br><br>
+    אני אוהב אותך הכי בעולם.<br><br>
+    חשבתי לא מעט מה להכין לך לשנה שלנו<br>
+    והחלטתי להכין לך משהו שאני טוב בו —<br>
+    אז הנה משחק עם כל הדברים שאת אוהבת. 🎮<br><br>
+    יש מעל ל־20 דברים שאת אוהבת<br>
+    חבואים במשחק,<br>
+    מקווה שתצליחי למצוא את כולם<br>
+    ובעיקר תהני. 🐾<br><br>
+    אוהב אותך עד השמיים<br>
+    ומאחל לנו עוד המון שנים ביחד.<br><br>
+    <b style="font-size:20px;color:#6b3a00">אני אוהב אותך.</b><br><br>
+    <span style="color:#aa6600;font-size:17px">— סנופ 💚</span>
   </div>
   <button class="mbtn mbtn-back" id="mbtn-letter-back" style="margin-top:30px">← חזור</button>
 `;
 document.body.appendChild(_panelLetter);
 
+// ── Background Music ───────────────────────────────────────────────────────────
+const _bgMusic = new Audio('backgroundmusicforvideos-kids-game-gaming-background-music-297733.mp3');
+_bgMusic.loop = true;
+_bgMusic.volume = 0.45;
+
+// Mute toggle button
+const _muteBtn = document.createElement('button');
+_muteBtn.id = 'mute-btn';
+_muteBtn.textContent = '🔊';
+_muteBtn.style.cssText = [
+  'position:fixed','bottom:14px','right:14px','z-index:50',
+  'background:rgba(0,0,0,0.65)','color:#fff','font-size:20px',
+  'border:1px solid rgba(255,255,255,0.3)','border-radius:50%',
+  'width:40px','height:40px','cursor:pointer','display:none',
+  'font-family:Arial,sans-serif','line-height:1','padding:0',
+].join(';');
+_muteBtn.addEventListener('click', () => {
+  if (_bgMusic.paused) {
+    _bgMusic.play().catch(() => {});
+    _muteBtn.textContent = '🔊';
+  } else {
+    _bgMusic.pause();
+    _muteBtn.textContent = '🔇';
+  }
+});
+document.body.appendChild(_muteBtn);
+
 // ── Button logic ───────────────────────────────────────────────────────────────
 document.getElementById('mbtn-play').addEventListener('click', () => {
+  _bgMusic.play().catch(() => {});
+  _muteBtn.style.display = 'block';
   _menuEl.style.opacity = '0';
   setTimeout(() => {
     _menuEl.style.display = 'none';

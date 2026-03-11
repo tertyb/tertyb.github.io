@@ -53,6 +53,51 @@ const MCD_X = 27, MCD_Z = -30;
   colliders.push({ x: MCD_X, z: MCD_Z, radius: 6.2 });
 })();
 
+// ── Outdoor Menu Board (tortia.jpg) — freestanding sign outside the store ─────
+(function buildMcdMenuBoard() {
+  // Two sign posts
+  [-2.6, 2.6].forEach(ox => {
+    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 5.5, 8),
+      new THREE.MeshLambertMaterial({ color: 0xffbb00 }));
+    post.position.set(MCD_X + ox, 2.75, MCD_Z + 10);
+    scene.add(post);
+  });
+
+  // Frame backing
+  const frameMat = new THREE.MeshLambertMaterial({ color: 0x8b0000 });
+  const frame = new THREE.Mesh(new THREE.BoxGeometry(7.2, 5.4, 0.2), frameMat);
+  frame.position.set(MCD_X, 3.5, MCD_Z + 10);
+  scene.add(frame);
+
+  // "MENU" label above
+  const lc = document.createElement('canvas'); lc.width = 256; lc.height = 48;
+  const lctx = lc.getContext('2d');
+  lctx.fillStyle = '#cc0000'; lctx.fillRect(0, 0, 256, 48);
+  lctx.fillStyle = '#ffbb00'; lctx.font = 'bold 34px Impact,Arial'; lctx.textAlign = 'center';
+  lctx.fillText('🍔  MENU  🌯', 128, 36);
+  const label = new THREE.Mesh(new THREE.PlaneGeometry(4.5, 0.85),
+    new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(lc), transparent: true }));
+  label.position.set(MCD_X, 6.4, MCD_Z + 9.9);
+  scene.add(label);
+
+  // Spotlight on the sign
+  const spotlight = new THREE.PointLight(0xfff8e0, 2.0, 14);
+  spotlight.position.set(MCD_X, 7.5, MCD_Z + 8);
+  scene.add(spotlight);
+
+  // Menu image — load texture
+  const loader = new THREE.TextureLoader();
+  loader.load('tortia.jpg', tex => {
+    tex.encoding = THREE.sRGBEncoding;
+    const menuMesh = new THREE.Mesh(
+      new THREE.PlaneGeometry(6.8, 5.0),
+      new THREE.MeshBasicMaterial({ map: tex })
+    );
+    menuMesh.position.set(MCD_X, 3.5, MCD_Z + 9.9);
+    scene.add(menuMesh);
+  });
+})();
+
 // ── Golden Arches Sign ────────────────────────────────────────────────────────
 (function makeMcDSign() {
   // Sign board texture

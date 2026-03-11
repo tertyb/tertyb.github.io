@@ -229,6 +229,24 @@ function updateParking(dt) {
   } else {
     pkHintEl.style.display = 'none';
   }
+
+  // Hedgehog
+  if (hhBubbleTimer > 0) {
+    hhBubbleTimer -= dt;
+    if (hhBubbleTimer <= 0) hhBubbleEl.style.display = 'none';
+  }
+  const nearHH = isNearHedgehog();
+  hhHintEl.style.display = (nearHH && hhBubbleEl.style.display === 'none') ? 'block' : 'none';
+
+  // Gentle idle bob + look toward player when near
+  if (window._hedgehogMesh) {
+    window._hedgehogMesh.position.y = Math.sin(Date.now() * 0.0015) * 0.06;
+    if (nearHH) {
+      const dx = player.position.x - HH_X;
+      const dz = player.position.z - HH_Z;
+      window._hedgehogMesh.rotation.y = Math.atan2(dx, dz);
+    }
+  }
 }
 
 window.addEventListener('keydown', e => {
@@ -236,4 +254,129 @@ window.addEventListener('keydown', e => {
   if (!isNearSpecialCar()) return;
   pkMsgEl.style.display = 'block';
   pkMsgTimer = 5.0;
+});
+
+// ── Hedgehog — הקיפודון ────────────────────────────────────────────────────────
+const HH_X = PK_CX + 10, HH_Z = PK_CZ + PK_D/2 + 4; // just north of parking entrance
+
+(function buildHedgehog() {
+  const g = new THREE.Group();
+  const bodyM  = new THREE.MeshLambertMaterial({ color: 0x5c3d1e }); // dark brown body
+  const bellyM = new THREE.MeshLambertMaterial({ color: 0xf5d5a0 }); // cream belly
+  const spineM = new THREE.MeshLambertMaterial({ color: 0x2a1a00 }); // dark spines
+  const noseM  = new THREE.MeshLambertMaterial({ color: 0x1a0a00 }); // black nose
+  const eyeM   = new THREE.MeshBasicMaterial({ color: 0x111111 });
+
+  // Body
+  const body = new THREE.Mesh(new THREE.SphereGeometry(0.55, 12, 8), bodyM);
+  body.scale.set(1.1, 0.75, 1.2);
+  body.position.y = 0.45; g.add(body);
+
+  // Belly patch
+  const belly = new THREE.Mesh(new THREE.SphereGeometry(0.32, 10, 7), bellyM);
+  belly.scale.set(0.9, 0.6, 0.8);
+  belly.position.set(0, 0.36, 0.28); g.add(belly);
+
+  // Head
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.34, 10, 8), bellyM);
+  head.scale.set(0.9, 0.85, 1.1);
+  head.position.set(0, 0.55, 0.7); g.add(head);
+
+  // Snout
+  const snout = new THREE.Mesh(new THREE.SphereGeometry(0.16, 8, 6), bellyM);
+  snout.scale.set(0.85, 0.7, 1.1);
+  snout.position.set(0, 0.48, 1.0); g.add(snout);
+
+  // Nose tip
+  const nose = new THREE.Mesh(new THREE.SphereGeometry(0.07, 7, 5), noseM);
+  nose.position.set(0, 0.49, 1.17); g.add(nose);
+
+  // Eyes
+  [-0.14, 0.14].forEach(ex => {
+    const eye = new THREE.Mesh(new THREE.SphereGeometry(0.065, 7, 5), eyeM);
+    eye.position.set(ex, 0.63, 0.96); g.add(eye);
+    // Shine
+    const shine = new THREE.Mesh(new THREE.SphereGeometry(0.025, 5, 4),
+      new THREE.MeshBasicMaterial({ color: 0xffffff }));
+    shine.position.set(ex + 0.03, 0.65, 0.99); g.add(shine);
+  });
+
+  // Ears
+  [-0.18, 0.18].forEach(ex => {
+    const ear = new THREE.Mesh(new THREE.SphereGeometry(0.1, 7, 5), bellyM);
+    ear.scale.set(0.7, 1.0, 0.5);
+    ear.position.set(ex, 0.82, 0.72); g.add(ear);
+  });
+
+  // Spines — rows of small cones on back
+  const spineOffsets = [];
+  for (let row = 0; row < 4; row++) {
+    for (let col = -3; col <= 3; col++) {
+      spineOffsets.push({
+        x: col * 0.14,
+        z: -0.15 - row * 0.16,
+        angle: -0.3 - row * 0.08,
+      });
+    }
+  }
+  spineOffsets.forEach(({ x, z, angle }) => {
+    const spine = new THREE.Mesh(new THREE.ConeGeometry(0.04, 0.38, 5), spineM);
+    const bx = x, bz = z;
+    const by = 0.78 + Math.cos(Math.abs(bx) * 1.5) * 0.1;
+    spine.position.set(bx, by, bz);
+    spine.rotation.x = angle;
+    spine.rotation.z = bx * 0.4;
+    g.add(spine);
+  });
+
+  // Tiny legs
+  [[-0.22, 0.2], [0.22, 0.2], [-0.2, -0.25], [0.2, -0.25]].forEach(([lx, lz]) => {
+    const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 0.28, 7), bodyM);
+    leg.position.set(lx, 0.14, lz); g.add(leg);
+  });
+
+  g.position.set(HH_X, 0, HH_Z);
+  scene.add(g);
+
+  // Gentle bob animation — store ref
+  window._hedgehogMesh = g;
+})();
+
+// Hedgehog talk UI
+const hhHintEl = document.createElement('div');
+hhHintEl.style.cssText = [
+  'position:fixed','bottom:55px','left:50%','transform:translateX(-50%)',
+  'background:rgba(60,30,0,0.93)','color:#fff','font-size:15px','font-weight:bold',
+  'padding:8px 22px','border-radius:14px','pointer-events:none','z-index:25',
+  'display:none','font-family:Arial,sans-serif','text-align:center','direction:rtl',
+  'border:2px solid #c8a060',
+].join(';');
+hhHintEl.textContent = '[E] 🦔 הקיפודון';
+document.body.appendChild(hhHintEl);
+
+const hhBubbleEl = document.createElement('div');
+hhBubbleEl.style.cssText = [
+  'position:fixed','top:28%','left:50%','transform:translateX(-50%)',
+  'background:#fff8e1','color:#3a1a00','font-size:20px',
+  'padding:28px 40px','border-radius:20px','pointer-events:none','z-index:40',
+  'display:none','font-family:Arial,sans-serif','text-align:center','direction:rtl',
+  'border:3px solid #c8a060','max-width:420px','line-height:1.8',
+  'box-shadow:0 8px 32px rgba(0,0,0,0.5)',
+].join(';');
+hhBubbleEl.innerHTML = '🦔<br><br><b>שלום אני הקיפודון</b><br>התגעגעתי אליך סנופי<br>אני אוהב אותך 💛';
+document.body.appendChild(hhBubbleEl);
+
+let hhBubbleTimer = 0;
+
+function isNearHedgehog() {
+  const dx = player.position.x - HH_X;
+  const dz = player.position.z - HH_Z;
+  return Math.sqrt(dx*dx + dz*dz) < 4.0;
+}
+
+window.addEventListener('keydown', e => {
+  if (e.code !== 'KeyE') return;
+  if (!isNearHedgehog()) return;
+  hhBubbleEl.style.display = 'block';
+  hhBubbleTimer = 5.0;
 });

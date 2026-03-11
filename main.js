@@ -84,7 +84,7 @@ function animate() {
         const dx=nx-c.x, dz=nz-c.z;
         if (Math.sqrt(dx*dx+dz*dz) < c.radius+0.5) { blocked=true; break; }
       }
-      if (Math.abs(nx)>280||Math.abs(nz)>280) blocked=true;
+      if (Math.abs(nx)>2200||Math.abs(nz)>2200) blocked=true;
       if (!blocked) { player.position.x=nx; player.position.z=nz; }
       player.rotation.y = angle;
     }
