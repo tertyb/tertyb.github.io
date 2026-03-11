@@ -123,11 +123,29 @@ const winStyle = document.createElement('style');
 winStyle.textContent = `
   @keyframes confettiFall {
     0%   { transform: translateY(0) rotate(0deg); opacity:1; }
-    100% { transform: translateY(110vh) rotate(720deg); opacity:0; }
+    100% { transform: translateY(110vh) rotate(900deg); opacity:0; }
   }
-  @keyframes winBounce {
-    0%,100% { transform: scale(1); }
-    50%      { transform: scale(1.06); }
+  @keyframes winPop {
+    0%   { opacity:0; transform:scale(0.5); }
+    60%  { transform:scale(1.08); }
+    100% { opacity:1; transform:scale(1); }
+  }
+  @keyframes winPulse {
+    0%,100% { text-shadow:0 0 20px #ffd700,0 0 40px #ffd700; }
+    50%      { text-shadow:0 0 50px #fff,0 0 80px #ffd700,0 0 120px #ff88ff; }
+  }
+  @keyframes fireworkBurst {
+    0%   { transform:scale(0); opacity:1; }
+    70%  { transform:scale(1.4); opacity:0.8; }
+    100% { transform:scale(2.2); opacity:0; }
+  }
+  @keyframes emojiFloat {
+    0%,100% { transform:translateY(0) scale(1); }
+    50%      { transform:translateY(-18px) scale(1.15); }
+  }
+  @keyframes shimmer {
+    0%   { background-position:0% 50%; }
+    100% { background-position:200% 50%; }
   }
 `;
 document.head.appendChild(winStyle);
@@ -135,45 +153,64 @@ document.head.appendChild(winStyle);
 const winScreenEl = document.createElement('div');
 winScreenEl.style.cssText = [
   'position:fixed','top:0','left:0','width:100%','height:100%',
-  'background:linear-gradient(135deg,rgba(0,0,0,0.93),rgba(40,0,70,0.96))',
+  'background:linear-gradient(135deg,#0a0020 0%,#1a004a 40%,#0a0030 70%,#200010 100%)',
   'display:none','flex-direction:column',
   'align-items:center','justify-content:center',
   'z-index:200','font-family:Arial,sans-serif',
-  'animation:winBounce 2.5s infinite',
+  'animation:winPop 0.7s ease-out',
 ].join(';');
 winScreenEl.innerHTML = `
-  <div style="font-size:90px;margin-bottom:14px;">🎉</div>
-  <div style="font-size:44px;color:#ffd700;font-weight:bold;text-align:center;
-    margin-bottom:14px;text-shadow:0 0 24px #ffd700;">המשחק הסתיים!</div>
-  <div style="font-size:28px;color:#fff;text-align:center;line-height:1.8;
-    margin-bottom:28px;max-width:520px;padding:0 24px;">
-    זה אני סנופ,<br>אני אוהב אותך הכי בעולם 💕
+  <div style="font-size:100px;margin-bottom:8px;animation:emojiFloat 2s ease-in-out infinite;">🏆</div>
+  <div style="font-size:52px;font-weight:bold;text-align:center;direction:rtl;
+    background:linear-gradient(90deg,#ffd700,#ff88ff,#ffd700,#88ffff,#ffd700);
+    background-size:200% auto;
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+    animation:shimmer 2s linear infinite,winPulse 2s ease-in-out infinite;
+    margin-bottom:18px;">
+    סיימת את המשחק!
   </div>
-  <div style="font-size:54px;letter-spacing:8px;">🌸💕🎆💕🌸</div>
+  <div style="font-size:30px;color:#fff;text-align:center;direction:rtl;line-height:2;
+    margin-bottom:24px;max-width:540px;padding:0 28px;
+    text-shadow:0 2px 12px rgba(200,150,255,0.7);">
+    🐾 מצאת את סנופ ואת כל הבשמים!<br>
+    <span style="color:#ffd700;">אני אוהב אותך הכי בעולם 💕</span>
+  </div>
+  <div style="font-size:58px;letter-spacing:10px;animation:emojiFloat 1.8s ease-in-out infinite 0.4s;">
+    🌸🎆🎇✨🎆🌸
+  </div>
 `;
 document.body.appendChild(winScreenEl);
 
-function showGameComplete() {
-  // Confetti burst
-  const cols = ['#ff6b6b','#ffd700','#a0e4ff','#ff9ff3','#54a0ff','#ff9f43','#00d2d3','#ffffff'];
-  for (let i = 0; i < 90; i++) {
+function spawnWinConfetti() {
+  const cols = ['#ff6b6b','#ffd700','#a0e4ff','#ff9ff3','#54a0ff','#ff9f43','#00d2d3','#ffffff','#ff88ff','#88ffaa'];
+  for (let i = 0; i < 160; i++) {
     const c = document.createElement('div');
-    const sz = 8 + Math.random() * 14;
+    const sz = 7 + Math.random() * 16;
     c.style.cssText = [
       'position:fixed',
       `left:${Math.random() * 100}%`,
-      `top:${-10 - Math.random() * 80}px`,
+      `top:${-20 - Math.random() * 100}px`,
       `width:${sz}px`,
-      `height:${sz * (0.4 + Math.random() * 0.6)}px`,
+      `height:${sz * (0.3 + Math.random() * 0.8)}px`,
       `background:${cols[Math.floor(Math.random() * cols.length)]}`,
-      `border-radius:${Math.random() > 0.5 ? '50%' : '3px'}`,
-      `animation:confettiFall ${2.5 + Math.random() * 3}s ${Math.random() * 2.5}s linear forwards`,
-      'z-index:201','pointer-events:none',
+      `border-radius:${Math.random() > 0.4 ? '50%' : '2px'}`,
+      `animation:confettiFall ${2 + Math.random() * 4}s ${Math.random() * 3}s linear forwards`,
+      'z-index:202','pointer-events:none',
     ].join(';');
     document.body.appendChild(c);
-    setTimeout(() => c.remove(), 8000);
+    setTimeout(() => c.remove(), 9000);
   }
+}
+
+function showGameComplete() {
+  spawnWinConfetti();
+  // Second wave of confetti after 1.5s
+  setTimeout(spawnWinConfetti, 1500);
+  // Third wave
+  setTimeout(spawnWinConfetti, 3200);
+
   winScreenEl.style.display = 'flex';
+  winScreenEl.style.animation = 'winPop 0.7s ease-out';
   setTimeout(() => { winScreenEl.style.display = 'none'; }, 10000);
 }
 window._showGameComplete = showGameComplete;

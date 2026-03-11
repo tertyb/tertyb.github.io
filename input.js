@@ -34,6 +34,8 @@ window.addEventListener('keydown', e => {
               near.bubbleEl.innerHTML = `<b>${near.name}</b><br>${near.dialogues[near.dialogueIdx].replace(/\n/g,'<br>')}`;
             } else {
               near.talkVisible = true;
+              near.dialogueIdx = 0;
+              near.bubbleEl.innerHTML = `<b>${near.name}</b><br>${near.dialogues[0].replace(/\n/g,'<br>')}`;
               tryTriggerQuest(near.name);
             }
           }

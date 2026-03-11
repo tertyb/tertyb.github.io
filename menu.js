@@ -141,7 +141,7 @@ _panelSettings.innerHTML = `
               text-align:right;direction:rtl;
               box-shadow:0 10px 50px rgba(0,0,0,0.7);font-family:Georgia,serif">
     <b style="font-size:clamp(17px,2.6vw,22px);color:#6b3a00">סנופי יקרה, ברוכה הבאה למשחק שלך 🌸</b><br><br>
-    המטרה שלך היא למצוא את כל הבשמים במשחק.<br><br>
+    המטרה שלך היא למצוא את כל הבשמים במשחק ולבסוף את סנופ.<br><br>
     חוץ מזה, המטרה השנייה היא להנות. 😊<br><br>
     <hr style="border:none;border-top:1px solid #d4b896;margin:10px 0">
     <br>

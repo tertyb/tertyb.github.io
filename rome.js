@@ -180,43 +180,53 @@ window._snoopyRomePos = { x: GEORGE_X, z: GEORGE_Z };
 (function buildGeorge() {
   const g = new THREE.Group();
   const furM  = new THREE.MeshLambertMaterial({ color: 0xffffff }); // Snoopy white
-  const darkM = new THREE.MeshLambertMaterial({ color: 0x111111 }); // black ears
+  const darkM = new THREE.MeshLambertMaterial({ color: 0x111111 }); // black ears/spots
   const noseM = new THREE.MeshLambertMaterial({ color: 0x1a0800 });
   const eyeM  = new THREE.MeshBasicMaterial({ color: 0x111111 });
 
-  // Body
-  const body = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.45, 0.85), furM);
-  body.position.y = 0.42; g.add(body);
-  // Head
-  const head = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.42, 0.42), furM);
-  head.position.set(0, 0.72, 0.42); g.add(head);
-  // Snout
-  const snout = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.18, 0.22), furM);
-  snout.position.set(0, 0.66, 0.62); g.add(snout);
-  // Nose
-  const nose = new THREE.Mesh(new THREE.SphereGeometry(0.065, 6, 4), noseM);
-  nose.position.set(0, 0.73, 0.73); g.add(nose);
-  // Eyes
-  [-0.13, 0.13].forEach(ex => {
-    const eye = new THREE.Mesh(new THREE.SphereGeometry(0.05, 6, 4), eyeM);
-    eye.position.set(ex, 0.8, 0.62); g.add(eye);
+  // Legs (standing upright)
+  [-0.15, 0.15].forEach(lx => {
+    const leg = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.52, 0.18), furM);
+    leg.position.set(lx, 0.26, 0); g.add(leg);
   });
-  // Floppy ears
-  [-0.26, 0.26].forEach(ex => {
-    const ear = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.24, 0.08), darkM);
-    ear.position.set(ex, 0.62, 0.36); g.add(ear);
+  // Torso
+  const torso = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.58, 0.32), furM);
+  torso.position.y = 0.81; g.add(torso);
+  // Black spot on torso back
+  const spot = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.38, 0.05), darkM);
+  spot.position.set(0, 0.82, -0.185); g.add(spot);
+  // Arms
+  [-0.35, 0.35].forEach(ax => {
+    const arm = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.44, 0.16), furM);
+    arm.position.set(ax, 0.74, 0);
+    arm.rotation.z = ax < 0 ? 0.25 : -0.25;
+    g.add(arm);
+  });
+  // Head
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.26, 10, 8), furM);
+  head.position.y = 1.28; g.add(head);
+  // Snout
+  const snout = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.15, 0.18), furM);
+  snout.position.set(0, 1.22, 0.26); g.add(snout);
+  // Nose
+  const nose = new THREE.Mesh(new THREE.SphereGeometry(0.055, 6, 4), noseM);
+  nose.position.set(0, 1.28, 0.35); g.add(nose);
+  // Eyes
+  [-0.1, 0.1].forEach(ex => {
+    const eye = new THREE.Mesh(new THREE.SphereGeometry(0.045, 6, 4), eyeM);
+    eye.position.set(ex, 1.34, 0.23); g.add(eye);
+  });
+  // Floppy ears (hanging down)
+  [-0.22, 0.22].forEach(ex => {
+    const ear = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.3, 0.07), darkM);
+    ear.position.set(ex, 1.1, 0); g.add(ear);
   });
   // Tail (wagging)
-  const tail = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.02, 0.38, 6), furM);
+  const tail = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.02, 0.32, 6), furM);
   tail.rotation.z = Math.PI / 4;
-  tail.position.set(0, 0.7, -0.46);
+  tail.position.set(0, 0.95, -0.22);
   g.add(tail);
   g.userData.tail = tail;
-  // Legs
-  [[-0.2, 0, 0.28],[0.2, 0, 0.28],[-0.2, 0, -0.22],[0.2, 0, -0.22]].forEach(([lx,,lz]) => {
-    const leg = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.38, 0.14), furM);
-    leg.position.set(lx, 0.19, lz); g.add(leg);
-  });
 
   g.position.set(GEORGE_X, 0, GEORGE_Z);
   scene.add(g);
@@ -236,7 +246,7 @@ window._snoopyRomePos = { x: GEORGE_X, z: GEORGE_Z };
     homePos: { x: GEORGE_X, z: GEORGE_Z },
     walkTarget: null, walkWait: 99, talkVisible: false, dialogueIdx: 0,
     dialogues: [
-      '🐾 זה אני סנופ <br>אני אוהב אותך הכי בעולם 💕',
+      '🐾 מצאת אותי!<br>זה אני סנופ —<br>סיימת את המשחק! 🎉',
     ],
     hintEl,
     bubbleEl,
@@ -279,14 +289,18 @@ function spawnFirework() {
   }
 }
 
-// Trigger fireworks every time E is pressed near George
+// Trigger win screen immediately when E is pressed near Snoopy
+let snoopyTriggered = false;
 window.addEventListener('keydown', e => {
   if (e.code !== 'KeyE') return;
+  if (snoopyTriggered) return;
   const dx = player.position.x - GEORGE_X, dz = player.position.z - GEORGE_Z;
   if (Math.sqrt(dx*dx + dz*dz) < 5) {
+    snoopyTriggered = true;
     fireworksActive = true;
     fireworksTimer = 14.0;
     fireworksSpawnTimer = 0;
+    if (window._showGameComplete) window._showGameComplete();
   }
 });
 
