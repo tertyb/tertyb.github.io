@@ -166,7 +166,7 @@ _panelLetter.innerHTML = `
               box-shadow:0 10px 50px rgba(0,0,0,0.7);font-family:Georgia,serif;position:relative">
     <div style="position:absolute;top:10px;left:14px;font-size:30px;opacity:0.1;user-select:none">🐾🐾</div>
     <b style="font-size:clamp(16px,2.5vw,22px);color:#6b3a00">סנופי שלי,</b><br><br>
-    אני אוהב אותך הכי בעולם.<br><br>
+    אני אוהב אותך הכי בעולם. את הדבר הכי חשוב בחיים שלי<br><br>
     חשבתי לא מעט מה להכין לך לשנה שלנו<br>
     והחלטתי להכין לך משהו שאני טוב בו —<br>
     אז הנה משחק עם כל הדברים שאת אוהבת. 🎮<br><br>
