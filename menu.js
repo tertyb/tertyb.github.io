@@ -240,7 +240,7 @@ document.getElementById('mbtn-letter-back').addEventListener('click', () => {
 const _backToMenuBtn = document.createElement('button');
 _backToMenuBtn.textContent = '🏠 תפריט';
 _backToMenuBtn.style.cssText = [
-  'position:fixed','top:14px','right:14px','z-index:40',
+  'position:fixed','top:60px','right:14px','z-index:40',
   'background:rgba(0,0,0,0.65)','color:#fff','font-size:14px','font-weight:bold',
   'padding:7px 16px','border-radius:20px','border:1px solid rgba(255,255,255,0.25)',
   'cursor:pointer','display:none','font-family:Arial,sans-serif',
