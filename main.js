@@ -28,8 +28,8 @@ function animate() {
     playerPlane.position.x += Math.sin(playerPlane.rotation.y) * planeSpeed * dt;
     playerPlane.position.z += Math.cos(playerPlane.rotation.y) * planeSpeed * dt;
     playerPlane.position.y += planeVelY * dt;
-    playerPlane.position.x = Math.max(-275, Math.min(275, playerPlane.position.x));
-    playerPlane.position.z = Math.max(-275, Math.min(275, playerPlane.position.z));
+    playerPlane.position.x = Math.max(-2200, Math.min(2200, playerPlane.position.x));
+    playerPlane.position.z = Math.max(-2200, Math.min(2200, playerPlane.position.z));
     // Pitch visual
     playerPlane.rotation.x = -planeVelY * 0.03;
     // Land on ground
@@ -251,10 +251,11 @@ function animate() {
   updateCombat(dt);
   updateSuperPharm(dt);
   updateJewelry(dt);
+  updateParking(dt);
+  updateSupermarket(dt);
+  updateRome(dt);
 
   renderer.render(scene, camera);
 }
 
-// ── Boot ──────────────────────────────────────────────────────────────────────
-loadSnoopy();
-animate();
+// Boot is triggered by the main menu — menu.js calls loadSnoopy() + animate()

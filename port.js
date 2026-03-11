@@ -48,14 +48,6 @@ beach.rotation.x = -Math.PI/2;
 beach.position.set(SEA_CX, 0.02, PORT_Z + 3);
 scene.add(beach);
 
-// Horizon water extension (very far)
-const deepSea = new THREE.Mesh(
-  new THREE.PlaneGeometry(400,200),
-  new THREE.MeshLambertMaterial({ color: 0x083060, transparent: true, opacity: 0.9 })
-);
-deepSea.rotation.x = -Math.PI/2;
-deepSea.position.set(SEA_CX, 0.01, SEA_Z - 100);
-scene.add(deepSea);
 
 // ── Pier / Dock ───────────────────────────────────────────────────────────────
 (function buildPier() {

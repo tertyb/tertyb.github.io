@@ -152,6 +152,17 @@ SKY_FLOCKS.forEach(flock=>{
   }
 });
 
+// ── Rome Compass HUD ──────────────────────────────────────────────────────────
+const romeCompassEl = document.createElement('div');
+romeCompassEl.style.cssText = [
+  'position:fixed','top:14px','right:16px',
+  'background:rgba(0,0,0,0.78)','color:#ffd700','font-size:15px','font-weight:bold',
+  'padding:10px 18px','border-radius:14px','pointer-events:none','z-index:30',
+  'display:none','font-family:Arial,sans-serif','text-align:center','line-height:1.7',
+  'border:2px solid #ffd700',
+].join(';');
+document.body.appendChild(romeCompassEl);
+
 // ── Update ────────────────────────────────────────────────────────────────────
 function updatePlanes(dt) {
   const t = Date.now() * 0.001;
@@ -202,5 +213,28 @@ function updatePlanes(dt) {
   // Player plane on ground: gentle idle bob
   if(!inPlane) {
     playerPlane.position.y = 0.56 + Math.sin(t*1.2)*0.02;
+  }
+
+  // Rome compass — show when in plane
+  if (inPlane) {
+    const dx = ROME_CX - playerPlane.position.x;
+    const dz = ROME_CZ - playerPlane.position.z;
+    const dist = Math.sqrt(dx*dx + dz*dz);
+    const distKm = Math.round(dist / 10) / 10;
+
+    // Arrow angle (from plane heading toward Rome)
+    const angleToRome = Math.atan2(dx, dz);
+    const relAngle = angleToRome - playerPlane.rotation.y;
+    const arrows = ['↑','↗','→','↘','↓','↙','←','↖'];
+    const arrowIdx = Math.round(((relAngle % (Math.PI*2)) + Math.PI*2) % (Math.PI*2) / (Math.PI/4)) % 8;
+    const arrow = arrows[arrowIdx];
+
+    const isNearRome = dist < 120;
+    romeCompassEl.style.display = 'block';
+    romeCompassEl.innerHTML = isNearRome
+      ? `🏛 <b>ROMA</b><br>✅ הגעת לרומא!<br>לחץ <b>E</b> לנחיתה`
+      : `🏛 <b>ROMA</b><br>${arrow} ${distKm} km<br><span style="font-size:12px;color:#ffeeaa">טוס לצפון</span>`;
+  } else {
+    romeCompassEl.style.display = 'none';
   }
 }
