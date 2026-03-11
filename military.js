@@ -329,7 +329,7 @@ const MAMRAM_X=BASE_X, MAMRAM_Z=BASE_Z+14;
     const cleg=new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.08,0.3,5),chairMat);
     cleg.position.set(0,-0.43,0.6); wg.add(cleg);
 
-    wg.position.set(cx,-1.76,cz);
+    wg.position.set(cx,0,cz);
     wg.rotation.y=ry;
     scene.add(wg);
   }
